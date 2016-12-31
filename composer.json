@@ -1,11 +1,13 @@
 {
-    "name": "formigone/machine-learning",
-    "description": "Source code for machine learning tutorials",
-    "authors": [
-        {
-            "name": "Rodrigo Silveira",
-            "email": "webmaster@rodrigo-silveira.com"
-        }
-    ],
-    "require": {}
+  "name": "formigone/machine-learning",
+  "description": "Source code for machine learning tutorials",
+  "authors": [
+    {
+      "name": "Rodrigo Silveira",
+      "email": "webmaster@rodrigo-silveira.com"
+    }
+  ],
+  "require": {
+    "mcordingley/Regression": "1.*"
+  }
 }
