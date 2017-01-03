@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05a9f824-5e4b-4d18-aa9c-0eb1a9cac18d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/handwriting/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-    </list>
+    <list default="true" id="05a9f824-5e4b-4d18-aa9c-0eb1a9cac18d" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -35,8 +32,8 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/handwriting/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="677">
-              <caret line="750" column="38" lean-forward="false" selection-start-line="750" selection-start-column="38" selection-end-line="750" selection-end-column="38" />
+            <state relative-caret-position="212">
+              <caret line="719" column="2" lean-forward="false" selection-start-line="719" selection-start-column="2" selection-end-line="725" selection-end-column="3" />
               <folding />
             </state>
           </provider>
@@ -242,12 +239,12 @@
       <option name="presentableId" value="Default" />
       <updated>1483153067258</updated>
       <workItem from="1483153068942" duration="9181000" />
-      <workItem from="1483363261389" duration="4252000" />
+      <workItem from="1483363261389" duration="4399000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13433000" />
+    <option name="totallyTimeSpent" value="13580000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1680" height="1023" extended-state="6" />
@@ -438,8 +435,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/handwriting/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="677">
-          <caret line="750" column="38" lean-forward="false" selection-start-line="750" selection-start-column="38" selection-end-line="750" selection-end-column="38" />
+        <state relative-caret-position="212">
+          <caret line="719" column="2" lean-forward="false" selection-start-line="719" selection-start-column="2" selection-end-line="725" selection-end-column="3" />
           <folding />
         </state>
       </provider>
