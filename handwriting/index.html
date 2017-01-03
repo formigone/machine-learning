@@ -95,7 +95,7 @@
 
   function predict() {
     var features = mapGrid(function(cell) {
-      return cell.classList.contains(className) ? 1 : 0;
+      return cell.classList.contains(className) ? 255 : 0;
     });
 
     var prediction = math.softmaxMat(math.addMatVec(math.mulMat([features], weights), biases));
@@ -112,7 +112,8 @@
     var action = off ? 'remove' : 'add';
     canvas.childNodes.forEach(function(node, index) {
       if (node === cell) {
-        var offsets = [-28, +28, -1, +1, 0];
+//        var offsets = [-28, +28, -1, +1, 0];
+        var offsets = [0];
         offsets.forEach(function(offset) {
           var c = canvas.childNodes.item(index + offset);
           if (c) {

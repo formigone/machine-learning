@@ -23,6 +23,7 @@ function predToInt(vals) {
   return maxIndex;
 }
 
+// TODO: train each file individually
 fs.readFile('./data/train.csv', (err, data) => {
   if (err) {
     throw err;
@@ -36,7 +37,7 @@ fs.readFile('./data/train.csv', (err, data) => {
 
   file.forEach((row, i) => {
     if (i > 0 && i < MAX_SAMPLES + MAX_TESTS + 1) {
-      const data = row.split(',').map(val => Number(val));
+      const data = row.split(',').map(val => val > 0 ? 255 : 0);
       const label = data.splice(0, 1).map(val => Number(val));
 
       if (i < MAX_SAMPLES + 1) {
@@ -58,7 +59,7 @@ fs.readFile('./data/train.csv', (err, data) => {
 
   classifier.set('log level', 1);
   classifier.train({
-    'lr': 0.01,
+    'lr': 0.03,
     'epochs': 800,
   });
 
