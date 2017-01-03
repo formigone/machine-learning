@@ -1,0 +1,108 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "5ba9a480c80b78687bdd977c34f5f399",
+    "content-hash": "729ac34bdb53f6cc197d65cedceefe73",
+    "packages": [
+        {
+            "name": "mcordingley/linearalgebra",
+            "version": "1.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mcordingley/LinearAlgebra.git",
+                "reference": "786fd828ff8faf5b3e2bfe5b06f6ebe725cd5055"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mcordingley/LinearAlgebra/zipball/786fd828ff8faf5b3e2bfe5b06f6ebe725cd5055",
+                "reference": "786fd828ff8faf5b3e2bfe5b06f6ebe725cd5055",
+                "shasum": ""
+            },
+            "require-dev": {
+                "codeclimate/php-test-reporter": "dev-master",
+                "phpunit/phpunit": "^5.5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "mcordingley\\LinearAlgebra\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "James Thomin",
+                    "email": "james.thomin@gmail.com"
+                },
+                {
+                    "name": "Michael Cordingley",
+                    "email": "Michael.Cordingley@gmail.com"
+                }
+            ],
+            "description": "Matrix math for PHP.",
+            "keywords": [
+                "linear-algebra",
+                "matrix"
+            ],
+            "time": "2016-08-25 20:06:55"
+        },
+        {
+            "name": "mcordingley/regression",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mcordingley/Regression.git",
+                "reference": "dd63820ce0b1d4750ef1d67763018071d65b8fa4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mcordingley/Regression/zipball/dd63820ce0b1d4750ef1d67763018071d65b8fa4",
+                "reference": "dd63820ce0b1d4750ef1d67763018071d65b8fa4",
+                "shasum": ""
+            },
+            "require": {
+                "mcordingley/linearalgebra": "^1.3.0"
+            },
+            "require-dev": {
+                "codeclimate/php-test-reporter": "dev-master",
+                "phpunit/phpunit": "^5.5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "mcordingley\\Regression\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Cordingley",
+                    "email": "Michael.Cordingley@gmail.com"
+                }
+            ],
+            "description": "Regression Package for PHP",
+            "keywords": [
+                "regression",
+                "statistics"
+            ],
+            "time": "2016-08-25 16:18:40"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
