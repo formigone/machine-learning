@@ -70,7 +70,7 @@
   function mapGrid(cb) {
     var map = [];
     for (var i = 0, len = canvas.childElementCount; i < len; i++) {
-      map.push(cb(canvas.children[i]));
+      map.push(cb(canvas.children[i], i));
     }
     return map;
   }
@@ -94,9 +94,22 @@
   }
 
   function predict() {
-    var features = mapGrid(function(cell) {
-      return cell.classList.contains(className) ? 1 : 0;
-    });
+    var blurred = mapGrid(function (cell) {
+      return cell.classList.contains(className) ? 255 : 0;
+    })
+      .map(function(cell, index, grid) {
+        var pts = [grid[index - 1], grid[index + 1], grid[index + 28], grid[index - 28]]
+          .filter(function(val){
+            return Number.isInteger(Number(val));
+          });
+        var sum = pts.reduce((acc, val) => acc + val);
+        return (cell + sum) / pts.length;
+      });
+
+    var features = blurred;
+//    var features = mapGrid(function(cell) {
+//      return cell.classList.contains(className) ? 255 : 0;
+//    });
 
     var prediction = math.softmaxMat(math.addMatVec(math.mulMat([features], weights), biases));
     var res = predToInt(prediction[0]);
@@ -158,7 +171,7 @@
       });
   }
 
-  init('/handwriting/coefs-bin-40k.json');
+  init('/handwriting/coefs-40k.json');
 </script>
 </body>
 </html>
