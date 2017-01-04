@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05a9f824-5e4b-4d18-aa9c-0eb1a9cac18d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/handwriting/pre-data.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/out" afterPath="$PROJECT_DIR$/handwriting/out" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/index.html" afterPath="$PROJECT_DIR$/handwriting/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/train.js" afterPath="$PROJECT_DIR$/handwriting/train.js" />
@@ -28,8 +26,8 @@
       <file leaf-file-name="train.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/handwriting/train.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="25" column="37" lean-forward="false" selection-start-line="25" selection-start-column="37" selection-end-line="25" selection-end-column="37" />
+            <state relative-caret-position="491">
+              <caret line="66" column="14" lean-forward="false" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -38,8 +36,18 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/handwriting/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="362">
-              <caret line="115" column="23" lean-forward="false" selection-start-line="115" selection-start-column="23" selection-end-line="115" selection-end-column="23" />
+            <state relative-caret-position="752">
+              <caret line="160" column="33" lean-forward="false" selection-start-line="160" selection-start-column="33" selection-end-line="160" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="LogisticRegression.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/node_modules/machine_learning/lib/LogisticRegression.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="551">
+              <caret line="47" column="0" lean-forward="false" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -248,12 +256,12 @@
       <workItem from="1483153068942" duration="9181000" />
       <workItem from="1483363261389" duration="4491000" />
       <workItem from="1483472774492" duration="1677000" />
-      <workItem from="1483484107130" duration="1204000" />
+      <workItem from="1483484107130" duration="3073000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16553000" />
+    <option name="totallyTimeSpent" value="18422000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1680" height="1023" extended-state="6" />
@@ -461,13 +469,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/handwriting/coefs-40k.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/handwriting/math.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="896">
@@ -492,26 +493,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/handwriting/coefs-40k.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="771">
+          <caret line="4" column="0" lean-forward="true" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/node_modules/machine_learning/lib/LogisticRegression.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="30" column="19" lean-forward="false" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
+        <state relative-caret-position="551">
+          <caret line="47" column="0" lean-forward="false" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/handwriting/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="115" column="23" lean-forward="false" selection-start-line="115" selection-start-column="23" selection-end-line="115" selection-end-column="23" />
+        <state relative-caret-position="752">
+          <caret line="160" column="33" lean-forward="false" selection-start-line="160" selection-start-column="33" selection-end-line="160" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/handwriting/train.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="25" column="37" lean-forward="false" selection-start-line="25" selection-start-column="37" selection-end-line="25" selection-end-column="37" />
+        <state relative-caret-position="491">
+          <caret line="66" column="14" lean-forward="false" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
           <folding />
         </state>
       </provider>

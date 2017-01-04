@@ -37,7 +37,12 @@ fs.readFile('./data/train.csv', (err, data) => {
 
   file.forEach((row, i) => {
     if (i > 0 && i < MAX_SAMPLES + MAX_TESTS + 1) {
-      const data = row.split(',').map(val => val > 0 ? 255 : 0);
+      const data = row.split(',').map((val, index) => {
+        if (index === 0) {
+          return Number(val);
+        }
+        return val === '0' ? 0 : 1;
+      });
       const label = data.splice(0, 1).map(val => Number(val));
 
       if (i < MAX_SAMPLES + 1) {
@@ -59,11 +64,11 @@ fs.readFile('./data/train.csv', (err, data) => {
 
   classifier.set('log level', 1);
   classifier.train({
-    'lr': 0.03,
-    'epochs': 800,
+    'lr': 0.003,
+    'epochs': 500,
   });
 
-  console.log(JSON.stringify({ W: classifier.W, b: classifier.b }));
+  console.error(JSON.stringify({ weights: classifier.W, bias: classifier.b }));
 
   let correct = 0;
   let wrong = 0;
