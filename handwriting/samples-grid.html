@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="eng">
+<head>
+  <title>Handwriting recognition algorithm JavaScript | Machine Learning</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.1/fetch.min.js"></script>
+  <style>
+    #writingGrid {
+      width: 100%;
+      max-width: 500px;
+      margin: 50px auto 0;
+      background: #ddd;
+      padding: 0;
+      overflow: auto;
+      cursor: crosshair;
+    }
+
+    #ctrl {
+      width: 100%;
+      max-width: 500px;
+      margin: 10px auto;
+      overflow: auto;
+    }
+
+    #ctrl button {
+      display: block;
+      width: 50%;
+      float: left;
+      margin: 0;
+      padding: 20px;
+      font-size: 100%;
+    }
+
+    #writingGrid div {
+      width: 3.5714%; /* 1/28th */
+      padding-top: 3.5714%;
+      min-height: 5px;
+      border: 1px solid #555;
+      box-sizing: border-box;
+      float: left;
+    }
+
+    .gridOff {
+      opacity: 0.5;
+    }
+
+    .cellOn {
+      background: #333;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+<div id="writingGrid"></div>
+<div id="ctrl">
+  <button id="refresh">Refresh</button>
+</div>
+
+<script>
+  var refreshBtn = document.getElementById('refresh');
+  var canvas = document.getElementById('writingGrid');
+  for (var i = 0, len = 28 * 28; i < len; i++) {
+    var cell = document.createElement('div');
+    canvas.appendChild(cell);
+  }
+
+  function mapGrid(cb) {
+    var map = [];
+    for (var i = 0, len = canvas.childElementCount; i < len; i++) {
+      map.push(cb(canvas.children[i], i));
+    }
+    return map;
+  }
+
+  var data = {};
+
+  function displayRandom() {
+    var rand = parseInt(Math.random() * 10, 10);
+    var key = Object.keys(data)[rand];
+
+    rand = parseInt(Math.random() * data[key].length, 10);
+    var digit = data[key][rand];
+    mapGrid(function(cell, i) {
+      cell.style.background = 'rgba(0, 0, 0, ' + (digit[i] / 255) + ')';
+    })
+  }
+
+  function init(coefs) {
+    fetch(coefs)
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function(json){
+        data = json;
+        displayRandom();
+        refreshBtn.addEventListener('click', displayRandom);
+      });
+  }
+
+  init('/handwriting/samples.json');
+</script>
+</body>
+</html>
