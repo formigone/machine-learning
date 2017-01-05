@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05a9f824-5e4b-4d18-aa9c-0eb1a9cac18d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/handwriting/scale-input.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/index.html" afterPath="$PROJECT_DIR$/handwriting/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/samples-grid.html" afterPath="$PROJECT_DIR$/handwriting/samples-grid.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/handwriting/train.js" afterPath="$PROJECT_DIR$/handwriting/train.js" />
-    </list>
+    <list default="true" id="05a9f824-5e4b-4d18-aa9c-0eb1a9cac18d" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -290,12 +284,12 @@
       <workItem from="1483557494252" duration="607000" />
       <workItem from="1483571366030" duration="4644000" />
       <workItem from="1483578248139" duration="4487000" />
-      <workItem from="1483656587658" duration="1267000" />
+      <workItem from="1483656587658" duration="1336000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="29427000" />
+    <option name="totallyTimeSpent" value="29496000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1680" height="1023" extended-state="6" />
