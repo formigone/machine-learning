@@ -23,6 +23,10 @@ function predToInt(vals) {
   return maxIndex;
 }
 
+function scaleRow(data, div = 255){
+  return data.map(val => val / div);
+}
+
 // TODO: train each file individually
 fs.readFile('./data/train.csv', (err, data) => {
   if (err) {
@@ -37,8 +41,13 @@ fs.readFile('./data/train.csv', (err, data) => {
   // const samples = {};
   file.forEach((row, i) => {
     if (i > 0 && i < MAX_SAMPLES + MAX_TESTS + 1) {
-      const data = row.split(',').map(val => Number(val));
+      let data = row.split(',').map(val => Number(val));
       const label = data.splice(0, 1).map(val => Number(val));
+
+      data = scaleRow(data);
+      if(i === 5) {
+        console.log(JSON.stringify(data));
+      }
 
       if (i < MAX_SAMPLES + 1) {
         x.push(data);
@@ -65,7 +74,7 @@ fs.readFile('./data/train.csv', (err, data) => {
 
   classifier.set('log level', 1);
   classifier.train({
-    'lr': 0.003,
+    'lr': 0.01,
     'epochs': 500,
   });
 
@@ -76,9 +85,9 @@ fs.readFile('./data/train.csv', (err, data) => {
   testX.forEach((test, i) => {
     const prediction = classifier.predict([test]);
     const digit = predToInt(prediction[0]);
-    console.log(`Input: ${testY[i]}`);
+    // console.log(`Input: ${testY[i]}`);
     // console.log(`Prediction: ${prediction}`);
-    console.log(`Result : ${digit}`);
+    // console.log(`Result : ${digit}`);
     if (digit == testY[i]) {
       correct += 1;
     } else {
@@ -86,5 +95,5 @@ fs.readFile('./data/train.csv', (err, data) => {
     }
   });
 
-  console.log(`Success: ${parseInt(correct / testX.length * 100, 10)}%  (${correct}/${wrong})`);
+  console.log(`Success: ${parseInt(correct / testX.length * 100, 10)}%  (${correct}/${testX.length})`);
 });

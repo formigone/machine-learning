@@ -54,6 +54,7 @@
       left: 0;
       width: 200px;
       height: 200px;
+      image-rendering: pixelated;
     }
   </style>
 </head>
@@ -74,6 +75,9 @@
 
   var mouseDown = false;
   var className = 'cellOn';
+  var alphaA = 1.0;
+  var bgColorA = 'rgba(0, 0, 0, ' + alphaA + ')';
+  var bgColorB = 'rgba(0, 0, 0, 0.0)';
 
   function mapGrid(cb) {
     var map = [];
@@ -85,7 +89,9 @@
 
   function resetGrid() {
     mapGrid(function(cell) {
-      cell.classList.remove(className);
+//      cell.classList.remove(className);
+      cell.style.background = bgColorB;
+      cell.removeAttribute('data-alpha');
     });
     removePreview();
   }
@@ -112,40 +118,82 @@
   }
 
   function predict() {
+    var min = 0;
+    var max = 0;
+    var sum = 0;
+    var mean = null;
     var blurred = mapGrid(function (cell) {
-      return cell.classList.contains(className) ? 255 : 0;
-    }).map(function(cell, index, grid) {
+//      var val = cell.classList.contains(className) ? 255 : 0;
+      var val = cell.getAttribute('data-alpha') == alphaA ? 255 : 0;
+      if (val < min) {
+        min = val;
+      }
+      if (val > max) {
+        max = val;
+      }
+      sum += val;
+      return val;
+    })
+//      .map(function (cell, index, grid) {
+//        return cell / 255;
+//      })
+//      .map(function (cell, index, grid) {
+//        if (mean === null) {
+//          mean = sum / grid.length;
+//          console.log(sum, mean);
+//        }
+//        var val = cell - mean;
+//        return val;
+//      })
+      .map(function (cell, index, grid) {
+//        var kernel = [
+//          -29, -28, -27,
+//           -1,   0,   1,
+//           27,  28,  29,
+//        ];
+//        var kernelWeights = [
+//          0.10, 0.30, 0.10,
+//          0.30, 1.00, 0.30,
+//          0.10, 0.30, 0.10,
+//        ];
       var kernel = [
+        -58, -57, -56, -55, -54,
         -30, -29, -28, -27, -26,
          -2,  -1,   0,   1,   2,
          26,  27,  28,  29,  30,
+         54,  55 , 56,  57,  58,
       ];
       var kernelWeights = [
-        0.01, 0.03, 0.04, 0.03, 0.01,
-        0.03, 0.04, 1.0, 0.04, 0.03,
-        0.01, 0.03, 0.04, 0.03, 0.01,
+        0.1, 0.2, 0.5, 0.2, 0.1,
+        0.2, 0.7, 0.8, 0.7, 0.2,
+        0.5, 0.8, 1.0, 0.8, 0.5,
+        0.2, 0.7, 0.8, 0.7, 0.2,
+        0.1, 0.2, 0.5, 0.2, 0.1,
       ];
+
 //      var kernel = [
-//        -58, -57, -56, -55, -54,
-//        -30, -29, -28, -27, -26,
-//         -2,  -1,   0,   1,   2,
-//         26,  27,  28,  29,  30,
-//         54,  55 , 56,  57,  58,
+//        -29, -28,
+//         -1, 0,
+//         27,
 //      ];
 //      var kernelWeights = [
-//        0.2, 0.5, 0.5, 0.5, 0.2,
-//        0.5, 0.7, 0.8, 0.7, 0.5,
-//        0.5, 0.8, 1.0, 0.8, 0.5,
-//        0.5, 0.7, 0.8, 0.7, 0.5,
-//        0.2, 0.5, 0.5, 0.5, 0.2,
+//        0.10, 0.10,
+//        0.50, 1.00,
+//        0.05,
 //      ];
         var pts = kernel
-          .map(function(val, i){ return grid[index + val] * kernelWeights[i]; })
-          .filter(function(val){ return Number.isInteger(Number(val)); })
-          .map(function(val){ return val > 0 ? (val + 300) % 255 : 0; });
-        return pts.reduce((acc, val) => acc + val) / pts.length;
+          .map(function (val, i) {
+            return grid[index + val] * kernelWeights[i];
+          })
+          .filter(function (val) {
+            return Number.isInteger(Number(val));
+          })
+          .map(function (val) {
+            return val > 0 ? (val + 300) % 255 : 0;
+          });
+        return pts.reduce((acc, val) => acc + val) / pts.length / 255;
       });
-
+//console.log(blurred)
     var preview = document.createElement('canvas');
     preview.width = 28;
     preview.height = 28;
@@ -182,12 +230,14 @@
     var action = off ? 'remove' : 'add';
     canvas.childNodes.forEach(function(node, index) {
       if (node === cell) {
-//        var offsets = [-28, +28, -1, +1, 0];
-        var offsets = [0];
+        var offsets = [-28, +28, -1, +1, 0];
+//        var offsets = [0];
         offsets.forEach(function(offset) {
           var c = canvas.childNodes.item(index + offset);
           if (c) {
-            c.classList[action](className);
+//            c.classList[action](className);
+            c.style.background = bgColorA;
+            c.setAttribute('data-alpha', alphaA);
           }
         });
       }
@@ -228,7 +278,7 @@
       });
   }
 
-  init('/handwriting/coefs-40k.json');
+  init('/handwriting/coefs-40k-scaled.json');
 </script>
 </body>
 </html>

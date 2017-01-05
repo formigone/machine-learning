@@ -87,7 +87,7 @@
     rand = parseInt(Math.random() * data[key].length, 10);
     var digit = data[key][rand];
     mapGrid(function(cell, i) {
-      cell.style.background = 'rgba(0, 0, 0, ' + (digit[i] / 255) + ')';
+      cell.style.background = 'rgba(0, 0, 0, ' + digit[i] + ')';
     })
   }
 
@@ -103,7 +103,7 @@
       });
   }
 
-  init('/handwriting/samples.json');
+  init('/handwriting/samples-scaled.json');
 </script>
 </body>
 </html>
