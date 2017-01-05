@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="eng">
+<head>
+  <title>Handwriting recognition algorithm JavaScript | Machine Learning</title>
+</head>
+<body>
+
+<script>
+
+  function init(coefs) {
+    fetch(coefs)
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (json) {
+        Object.keys(json).forEach(function(key){
+          var title = document.createElement('h1');
+          title.textContent = 'Samples for digit #' + key;
+          document.body.appendChild(title);
+
+          json[key].forEach(function(digit){
+            var preview = document.createElement('canvas');
+            preview.width = 28;
+            preview.height = 28;
+            var ctx = preview.getContext('2d');
+            ctx.imageSmoothingEnabled= false;
+            ctx.webkitImageSmoothingEnabled= false;
+
+            document.body.appendChild(preview);
+            digit.forEach(function(alpha, i){
+              var x = i % 28;
+              var y = parseInt(i / 28, 10);
+              ctx.fillStyle = 'rgba(0, 0, 0, ' + alpha + ')';
+              ctx.fillRect(x, y, 1, 1);
+            });
+          });
+        });
+      });
+  }
+
+  init('/handwriting/samples.json');
+</script>
+</body>
+</html>

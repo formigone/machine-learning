@@ -34,26 +34,27 @@ fs.readFile('./data/train.csv', (err, data) => {
   const y = [];
   const testX = [];
   const testY = [];
-
+  // const samples = {};
   file.forEach((row, i) => {
     if (i > 0 && i < MAX_SAMPLES + MAX_TESTS + 1) {
-      const data = row.split(',').map((val, index) => {
-        if (index === 0) {
-          return Number(val);
-        }
-        return val === '0' ? 0 : 1;
-      });
+      const data = row.split(',').map(val => Number(val));
       const label = data.splice(0, 1).map(val => Number(val));
 
       if (i < MAX_SAMPLES + 1) {
         x.push(data);
         y.push(makeLabel(label[0]));
+
+        // samples[label[0]] = samples[label[0]] || [];
+        // samples[label[0]].push(data);
       } else {
         testX.push(data);
         testY.push(label);
       }
     }
   });
+  //
+  // console.error(JSON.stringify(samples));
+  // process.exit();
 
   const classifier = new ml.LogisticRegression({
     'input': x,

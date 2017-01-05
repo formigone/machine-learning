@@ -47,6 +47,14 @@
     .cellOn {
       background: #333;
     }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 200px;
+    }
   </style>
 </head>
 <body>
@@ -79,6 +87,7 @@
     mapGrid(function(cell) {
       cell.classList.remove(className);
     });
+    removePreview();
   }
 
   function predToInt(vals) {
@@ -93,18 +102,66 @@
     return { value: maxIndex, certainty: max };
   }
 
+  var previewId = 'previewCanvas';
+
+  function removePreview() {
+    var oldPreview = document.getElementById(previewId);
+    if (oldPreview) {
+      document.body.removeChild(oldPreview);
+    }
+  }
+
   function predict() {
     var blurred = mapGrid(function (cell) {
       return cell.classList.contains(className) ? 255 : 0;
-    })
-      .map(function(cell, index, grid) {
-        var pts = [grid[index - 1], grid[index + 1], grid[index + 28], grid[index - 28]]
-          .filter(function(val){
-            return Number.isInteger(Number(val));
-          });
-        var sum = pts.reduce((acc, val) => acc + val);
-        return (cell + sum) / pts.length;
+    }).map(function(cell, index, grid) {
+      var kernel = [
+        -30, -29, -28, -27, -26,
+         -2,  -1,   0,   1,   2,
+         26,  27,  28,  29,  30,
+      ];
+      var kernelWeights = [
+        0.01, 0.03, 0.04, 0.03, 0.01,
+        0.03, 0.04, 1.0, 0.04, 0.03,
+        0.01, 0.03, 0.04, 0.03, 0.01,
+      ];
+//      var kernel = [
+//        -58, -57, -56, -55, -54,
+//        -30, -29, -28, -27, -26,
+//         -2,  -1,   0,   1,   2,
+//         26,  27,  28,  29,  30,
+//         54,  55 , 56,  57,  58,
+//      ];
+//      var kernelWeights = [
+//        0.2, 0.5, 0.5, 0.5, 0.2,
+//        0.5, 0.7, 0.8, 0.7, 0.5,
+//        0.5, 0.8, 1.0, 0.8, 0.5,
+//        0.5, 0.7, 0.8, 0.7, 0.5,
+//        0.2, 0.5, 0.5, 0.5, 0.2,
+//      ];
+        var pts = kernel
+          .map(function(val, i){ return grid[index + val] * kernelWeights[i]; })
+          .filter(function(val){ return Number.isInteger(Number(val)); })
+          .map(function(val){ return val > 0 ? (val + 300) % 255 : 0; });
+        return pts.reduce((acc, val) => acc + val) / pts.length;
       });
+
+    var preview = document.createElement('canvas');
+    preview.width = 28;
+    preview.height = 28;
+    preview.setAttribute('id', previewId);
+    var ctx = preview.getContext('2d');
+    ctx.imageSmoothingEnabled= false;
+    ctx.webkitImageSmoothingEnabled= false;
+
+    removePreview();
+    document.body.appendChild(preview);
+    blurred.forEach(function(alpha, i){
+      var x = i % 28;
+      var y = parseInt(i / 28, 10);
+      ctx.fillStyle = 'rgba(0, 0, 0, ' + alpha + ')';
+      ctx.fillRect(x, y, 1, 1);
+    });
 
     var features = blurred;
 //    var features = mapGrid(function(cell) {
@@ -125,8 +182,8 @@
     var action = off ? 'remove' : 'add';
     canvas.childNodes.forEach(function(node, index) {
       if (node === cell) {
-//        var offsets = [-28, +28, -1, +1, 0];
-        var offsets = [0];
+        var offsets = [-28, +28, -1, +1, 0];
+//        var offsets = [0];
         offsets.forEach(function(offset) {
           var c = canvas.childNodes.item(index + offset);
           if (c) {
