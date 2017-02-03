@@ -2,6 +2,13 @@
 <html lang="eng">
 <head>
   <title>Handwriting recognition algorithm JavaScript | Machine Learning</title>
+  <style>
+    canvas {
+      width: 150px;
+      height: 150px;
+      image-rendering: pixelated;
+    }
+  </style>
 </head>
 <body>
 
@@ -13,32 +20,31 @@
         return res.json();
       })
       .then(function (json) {
-        Object.keys(json).forEach(function(key){
-          var title = document.createElement('h1');
-          title.textContent = 'Samples for digit #' + key;
-          document.body.appendChild(title);
+        Object.keys(json.samples).forEach(function(index){
+          var sample = json.samples[index];
+//          var title = document.createElement('h1');
+//          title.textContent = 'Samples for digit #' + sample.output.indexOf(1);
+//          document.body.appendChild(title);
 
-          json[key].forEach(function(digit){
-            var preview = document.createElement('canvas');
-            preview.width = 28;
-            preview.height = 28;
-            var ctx = preview.getContext('2d');
-            ctx.imageSmoothingEnabled= false;
-            ctx.webkitImageSmoothingEnabled= false;
+          var preview = document.createElement('canvas');
+          preview.width = 28;
+          preview.height = 28;
+          var ctx = preview.getContext('2d');
+          ctx.imageSmoothingEnabled= false;
+          ctx.webkitImageSmoothingEnabled= false;
+          document.body.appendChild(preview);
 
-            document.body.appendChild(preview);
-            digit.forEach(function(alpha, i){
-              var x = i % 28;
-              var y = parseInt(i / 28, 10);
-              ctx.fillStyle = 'rgba(0, 0, 0, ' + alpha + ')';
-              ctx.fillRect(x, y, 1, 1);
-            });
+          sample.input.forEach(function(digit, i){
+            var x = i % 28;
+            var y = parseInt(i / 28, 10);
+            ctx.fillStyle = 'rgba(0, 0, 0, ' + (digit / 255) + ')';
+            ctx.fillRect(x, y, 1, 1);
           });
         });
       });
   }
 
-  init('/handwriting/samples.json');
+  init('syn.json');
 </script>
 </body>
 </html>
