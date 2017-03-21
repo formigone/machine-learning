@@ -52,8 +52,26 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var renderer = _pixi2.default.autoDetectRenderer(800, 600, { backgroundColor: 0x1099bb });
+	var renderer = _pixi2.default.autoDetectRenderer(800, 600, {
+	  backgroundColor: 0x1099bb,
+	  antialias: false,
+	  resolution: 1
+	});
 	document.body.appendChild(renderer.view);
+
+	var stage = new _pixi2.default.Container();
+	renderer.render(stage);
+
+	_pixi2.default.loader.add('mushroom', '/assets/images/mushroom2.png').load(function (loader, res) {
+	  var mushroom = new _pixi2.default.Sprite(res.mushroom.texture);
+	  mushroom.x = renderer.width / 2;
+	  mushroom.y = renderer.height / 2;
+	  mushroom.anchor.x = 0.5;
+	  mushroom.anchor.y = 0.5;
+
+	  stage.addChild(mushroom);
+	  renderer.render(stage);
+	});
 
 /***/ },
 /* 1 */
