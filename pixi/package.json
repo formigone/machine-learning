@@ -17,6 +17,7 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
+    "game-loop": "0.0.1",
     "pixi.js": "^4.4.2"
   }
 }

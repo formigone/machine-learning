@@ -1,0 +1,20 @@
+{
+  "frames": {
+    "standingRight": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 80,
+        "y": 1,
+        "w": 32,
+        "h": 64
+      }
+    }
+  }
+}
