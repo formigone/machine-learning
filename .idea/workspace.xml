@@ -25,8 +25,8 @@
       <file leaf-file-name="main.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pixi/src/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="297">
-              <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
+            <state relative-caret-position="458">
+              <caret line="173" column="0" lean-forward="true" selection-start-line="173" selection-start-column="0" selection-end-line="173" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -65,6 +65,7 @@
       <find>stage.</find>
       <find>Container</find>
       <find>_DisplayObject</find>
+      <find>16</find>
     </findStrings>
     <replaceStrings>
       <replace>const</replace>
@@ -416,12 +417,12 @@
       <workItem from="1490093858532" duration="2186000" />
       <workItem from="1490181154295" duration="7615000" />
       <workItem from="1490189474256" duration="73000" />
-      <workItem from="1490267747997" duration="1306000" />
+      <workItem from="1490267747997" duration="5878000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="67246000" />
+    <option name="totallyTimeSpent" value="71818000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="1173" extended-state="6" />
@@ -673,8 +674,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pixi/src/main.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="109" column="0" lean-forward="false" selection-start-line="109" selection-start-column="0" selection-end-line="109" selection-end-column="0" />
+        <state relative-caret-position="458">
+          <caret line="173" column="0" lean-forward="true" selection-start-line="173" selection-start-column="0" selection-end-line="173" selection-end-column="0" />
           <folding />
         </state>
       </provider>
