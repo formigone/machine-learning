@@ -18,22 +18,30 @@ PIXI.loader
   .add('mushroom', '/assets/images/mushroom2.png')
   .add('mario', '/assets/images/mario.png')
   .add('level1', '/assets/images/level-1.png')
+  .add('tiles', '/assets/images/tiles.png')
   .add('enemies', '/assets/images/enemies.png')
   .load((loader, res) => {
     const sky = new PIXI.Container();
     sky.addChild(genSky(renderer.width / 2, renderer.height / 2));
 
     const mountains = new PIXI.Container();
-    mountains.addChild(genMountain(10, renderer.height));
-    mountains.addChild(genMountain(800, renderer.height));
-    mountains.addChild(genMountain(2000, renderer.height));
+    // mountains.addChild(genMountain(10, renderer.height));
+    // mountains.addChild(genMountain(800, renderer.height));
+    // mountains.addChild(genMountain(2000, renderer.height));
     mountains._halfWidth = mountains.width / 2;
 
+    const ground = new PIXI.Container();
+    for (let i = 0; i < 19; i++) {
+      ground.addChild(genBrickFloor(i, renderer.height));
+    }
+
     bg.push(sky);
-    bg.push(mountains);
+    // bg.push(mountains);
+    bg.push(ground);
 
     stage.addChild(sky);
-    stage.addChild(mountains);
+    // stage.addChild(mountains);
+    stage.addChild(ground);
 
     mushroom = new PIXI.Sprite(res.mushroom.texture);
     mushroom.x = renderer.width - renderer.width / 4;
@@ -53,11 +61,18 @@ const p = document.createElement('p');
 document.body.appendChild(p);
 
 const d = document.createElement('div');
-d.style = 'position: absolute; top: 10px; right: 10px; border: 1px solid #c00; background: url(assets/images/level-1.png); background-position: -10px -10px; width: 50px; height: 50px;';
+d.style = 'position: absolute; top: 10px; right: 10px; border: 1px solid #c00; background: url(assets/images/tiles.png); background-position: -10px -10px; width: 50px; height: 50px;';
 document.body.appendChild(d);
 
 function genMountain(x, y) {
   return genTile(0, 164, 80, 35, 'level1', [1, 0.5], [x, y], 3);
+}
+
+function genBrickFloor(x, y) {
+  const scale = 3;
+  const width = 16;
+  const height = 16;
+  return genTile(0, 0, width, height, 'tiles', [1, 0.5], [x * scale * width, y], scale);
 }
 
 function genSky(x, y) {
@@ -87,15 +102,31 @@ function updateDebug() {
   p.textContent = `FPS: ${Number(loop.fps).toFixed(0)}`;
 }
 
+function scrollWrap(container) {
+  container.children.forEach((sprite, i) => {
+    sprite.x -= mushroom._accelX;
+    if (sprite.x < -sprite.width) {
+      sprite.x = container.children.length * sprite.width - sprite.width - 2;
+    }
+  });
+}
+
 let counter = 0;
 let inc = Math.PI * 0.5 / 100;
+let MOUSE_DOWN = false;
+document.body.addEventListener('mousedown', e => MOUSE_DOWN = !MOUSE_DOWN);
 
 loop.use(function () {
-  const mountains = bg[1];
-  mountains.x -= mushroom._accelX;
-  if (mountains.x < -mountains.width) {
-    mountains.x = renderer.width + mountains._halfWidth;
+  if (MOUSE_DOWN) {
+    return;
   }
+  // const mountains = bg[1];
+  // mountains.x -= mushroom._accelX;
+  // if (mountains.x < -mountains.width) {
+  //   mountains.x = renderer.width + mountains._halfWidth;
+  // }
+
+  scrollWrap(bg[1]);
 
 
   mushroom.rotation += 0.025;
