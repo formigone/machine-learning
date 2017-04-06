@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Genetic Algorithm</title>
+  <link href="../shared/web/css/bootstrap.css" rel="stylesheet" />
+  <style>
+    .main {
+      margin-top: 50px;
+    }
+
+    #pop li {
+      font-family: monospace;
+    }
+
+    .highlight {
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <div class="container main">
+    <div class="row">
+      <div class="col-md-6">
+        <p class="text-muted">Best fitness</p>
+        <h1 id="best-fit">--</h1>
+        <hr/>
+
+        <p>Fitness: <strong id="fitness">0</strong></p>
+        <p>Generation: <strong id="generation">0</strong></p>
+        <p>Target: <strong id="target"></strong></p>
+      </div>
+      <div class="col-md-6">
+        <p class="text-muted">Population</p>
+        <ul id="pop"></ul>
+      </div>
+    </div>
+  </div>
+<script>
+  const bestFitEl = document.getElementById('best-fit');
+  const fitnessEl = document.getElementById('fitness');
+  const targetEl = document.getElementById('target');
+  const generationEl = document.getElementById('generation');
+  const populationEl = document.getElementById('pop');
+
+  let targetPhrase = 'Light the world';
+  let targetLength = targetPhrase.length;
+  let populationSize = 10;
+  let population = [];
+  let generation = 0;
+  let fitness = 0;
+  let fittestIndex = 0;
+
+  init();
+
+  function init() {
+    population = initPopulation(populationSize, targetLength);
+    render();
+  }
+
+  function render() {
+    setFitness();
+    renderPopulation();
+    renderTarget();
+    renderGeneration();
+    renderFittest();
+    renderFitness();
+  }
+
+  function renderFitness() {
+    fitnessEl.textContent = fitness;
+  }
+
+  function renderGeneration() {
+    generationEl.textContent = generation;
+  }
+
+  function renderTarget() {
+    targetEl.textContent = targetPhrase;
+  }
+
+  function renderFittest() {
+    bestFitEl.textContent = population[fittestIndex];
+  }
+
+  function renderPopulation() {
+    populationEl.innerHTML = '';
+    population.forEach((element, index) => {
+      const props = {};
+      if (index === fittestIndex) {
+        props.className = 'highlight';
+      }
+
+//      populationEl.appendChild(el('li', props, `${element} (${getFitness(element, targetPhrase)})`));
+      populationEl.appendChild(el('li', props, element));
+    });
+  }
+
+  function setFitness() {
+    fitness = 0;
+    population.forEach((element, index) => {
+      const curFit = getFitness(element, targetPhrase);
+      if (curFit > fitness) {
+        fittestIndex = index;
+        fitness = curFit;
+      }
+    });
+
+    bestFitEl.textContent = population[fittestIndex];
+  }
+
+  function getFitness(phrase, targetPhrase) {
+    let fit = 0;
+    for (let i = 0; i < targetPhrase.length; i++) {
+      if (phrase[i] === targetPhrase[i]) {
+        fit += 1;
+      }
+    }
+
+    return fit;
+  }
+
+  function el(name, props, child) {
+    const element = document.createElement(name);
+
+    // TODO: apply props to element
+    if (props instanceof Object) {
+      if ('className' in props) {
+        element.className = props.className;
+      }
+    }
+
+    // TODO: handle case where child is an array + other elements
+
+    if (typeof child === 'string') {
+      element.textContent = child;
+    }
+
+    return element;
+  }
+
+  function initPopulation(populationSize, elementLength) {
+    const population = [];
+    for (let i = 0; i < populationSize; i++) {
+      population.push(randStr(elementLength));
+    }
+    return population;
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function randStr(length, alphabet) {
+    alphabet = alphabet || 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const str = [];
+    for (let i = 0; i < length; i++) {
+      str.push(alphabet[randInt(0, alphabet.length)]);
+    }
+
+    return str.join('');
+  }
+</script>
+</body>
+</html>
