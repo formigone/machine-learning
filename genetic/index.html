@@ -9,6 +9,11 @@
       margin-top: 50px;
     }
 
+    #pop {
+      list-style: none;
+      padding: 0;
+    }
+
     #pop li {
       font-family: monospace;
     }
@@ -37,6 +42,13 @@
       <ul id="pop"></ul>
     </div>
   </div>
+  <div class="row hidden">
+    <div class="col-md-12">
+      <hr/>
+      <button class="btn btn-primary" id="debug-btn">Debug</button>
+      <div id="debug-container"></div>
+    </div>
+  </div>
 </div>
 <script>
   const bestFitEl = document.getElementById('best-fit');
@@ -46,18 +58,30 @@
   const mutationEl = document.getElementById('mutation');
   const generationEl = document.getElementById('generation');
   const populationEl = document.getElementById('pop');
+  const debugBtn = document.getElementById('debug-btn');
+  const debugContainer = document.getElementById('debug-container');
 
   let generationDelay = 1;
-  let mutationRate = 0.01;
-  let targetPhrase = 'Light the world';
+  let mutationRate = 0.005;
+  let targetPhrase = 'Pursue excellence!';
   let targetLength = targetPhrase.length;
-  let populationSize = 50;
+  let populationSize = 350;
   let population = [];
   let generation = 0;
   let fitness = 0;
   let fittestIndex = 0;
+  let running = true;
+  let debugMode = !running;
 
   setTimeout(() => {
+    debugBtn.addEventListener('click', () => {
+      debugMode = !debugMode;
+
+      if (!debugMode) {
+        running = !running;
+      }
+    });
+
     init();
   }, 0);
 
@@ -67,32 +91,28 @@
   }
 
   function tick() {
-    nextGeneration();
-    setFitness();
-    render();
+    if (running) {
+      nextGeneration();
+      setFitness();
+      render();
+    }
+
     if (fitness < 1) {
       setTimeout(tick, generationDelay);
     }
   }
 
   function nextGeneration() {
-    const sum = population.reduce((acc, element) => acc + Number(element.fitness), 0);
-    if (sum === 0) {
-      return;
-    }
-
-    // TODO: fix this. Doesn't seem to work right with larger populations
-    const genePoolRaw = population.map(element => element.fitness * 100 / sum);
-    const genePool = [];
-    genePoolRaw.forEach((val, index) => {
-      for (let i = 0; i < val; i++) {
-        genePool.push(index);
+    const maxFitness = population.reduce((acc, element) => {
+      if (element.fitness > acc) {
+        acc = element.fitness;
       }
-    });
+      return acc;
+    }, 0);
 
     population = population.map(() => {
-      const parentA = select(genePool);
-      const parentB = select(genePool);
+      const parentA = select(population, maxFitness);
+      const parentB = select(population, maxFitness);
       const child = parentA.mix(parentB);
       child.mutate();
       return child;
@@ -103,47 +123,42 @@
 
   function render() {
     renderPopulation();
-    renderPopulationSize();
-    renderTarget();
-    renderMutation();
-    renderGeneration();
-    renderFittest();
-    renderFitness();
-  }
 
-  function select(genePool) {
-    const rand = randInt(0, 99);
-    return population[genePool[rand]];
-  }
-
-  function renderFitness() {
-    fitnessEl.textContent = Number(fitness).toFixed(2);
-  }
-
-  function renderPopulationSize() {
-    populationCountEl.textContent = populationSize;
-  }
-
-  function renderMutation() {
-    mutationEl.textContent = Number(mutationRate).toFixed(2);
-  }
-
-  function renderGeneration() {
+    fitnessEl.textContent = Math.min(1, Number(fitness)).toFixed(2);
+    populationCountEl.textContent = population.length;
+    mutationEl.textContent = Number(mutationRate).toFixed(4);
     generationEl.textContent = generation;
-  }
-
-  function renderTarget() {
     targetEl.textContent = targetPhrase;
-  }
-
-  function renderFittest() {
     bestFitEl.textContent = population[fittestIndex].data;
   }
 
+  function select(population, maxFitness) {
+    let attempts = 0;
+    while (attempts++ < 1000) {
+      const rand = Math.random() * maxFitness;
+      const candidate = randInt(0, population.length - 1);
+      if (rand <= population[candidate].fitness) {
+        return population[candidate];
+      }
+    }
+  }
+
   function renderPopulation() {
+    const pop = population.map(el => el);
+    pop.sort((a, b) => {
+      if (a.fitness < b.fitness) {
+        return 1;
+      }
+
+      if (a.fitness > b.fitness) {
+        return -1;
+      }
+
+      return 0;
+    });
     populationEl.innerHTML = '';
-    population.forEach((element, index) => {
-      if (index > 10) {
+    pop.forEach((element, index) => {
+      if (index > 12) {
         return;
       }
       const props = {};
@@ -204,7 +219,7 @@
   }
 
   function randStr(length, alphabet) {
-    alphabet = alphabet || 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    alphabet = alphabet || 'abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ,.?!';
     const str = [];
     for (let i = 0; i < length; i++) {
       str.push(alphabet[randInt(0, alphabet.length - 1)]);
@@ -227,7 +242,7 @@
       }
     }
 
-    this.fitness = fit / this.data.length;
+    this.fitness = Math.pow(fit / target.length, 2) + 0.01;
     return this.fitness;
   };
 
