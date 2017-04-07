@@ -62,10 +62,10 @@
   const debugContainer = document.getElementById('debug-container');
 
   let generationDelay = 1;
-  let mutationRate = 0.005;
+  let mutationRate = 0.01;
   let targetPhrase = 'Pursue excellence!';
   let targetLength = targetPhrase.length;
-  let populationSize = 350;
+  let populationSize = 1500;
   let population = [];
   let generation = 0;
   let fitness = 0;
@@ -126,7 +126,7 @@
 
     fitnessEl.textContent = Math.min(1, Number(fitness)).toFixed(2);
     populationCountEl.textContent = population.length;
-    mutationEl.textContent = Number(mutationRate).toFixed(4);
+    mutationEl.textContent = Number(mutationRate).toFixed(2);
     generationEl.textContent = generation;
     targetEl.textContent = targetPhrase;
     bestFitEl.textContent = population[fittestIndex].data;
