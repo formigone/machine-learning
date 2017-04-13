@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Physics</title>
+  <style>
+    body {
+      background: #333;
+    }
+
+    canvas {
+      display: block;
+      margin: 50px auto;
+      box-shadow: 0 10px 30px #000;
+    }
+  </style>
+</head>
+<body>
+<script src="phy/phy.js"></script>
+<script>
+  var WIDTH = 900;
+  var HEIGHT = 450;
+
+  __phy.width = WIDTH;
+  __phy.height = HEIGHT;
+
+  var init = initCanvas();
+  var canvas = init.canvas;
+  var ctx = init.ctx;
+  ctx.font = '1em monospace';
+
+  var hasClicked = false;
+  var whenClicked = 0;
+  var G_FORCE = 0.8;
+  var W_FORCE = -5;
+  var FLOOR_Y = HEIGHT / 4 * 3;
+
+  var PLAYER_DEAD_COLOR = 'rgba(178, 36, 56, 0.5)';
+  var PLAYER_ALIVE_COLOR = 'rgba(178, 36, 56, 1)';
+
+  var enemy = new Circle(new Vec2(0 - WIDTH, FLOOR_Y - 30), 30, '#4a952d');
+  var hero = new Circle(new Vec2(WIDTH / 4, 0), 10, '#c00');
+  var canClick = new Circle(new Vec2(50, 50), 10, '#ffe400');
+
+  function juju(hero, enemy) {
+    var dx = hero.pos.x - enemy.pos.x;
+    var dy = hero.pos.y - enemy.pos.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+    var MIN_DIST = hero.r + enemy.r;
+
+    var debug = function(ctx) {
+      ctx.save();
+      ctx.fillStyle = '#0c0';
+      ctx.fillText(`Dist: ${Number(distance).toFixed(2)}`, 100, 75);
+      ctx.restore();
+    };
+
+    if (!hero.isJumping && distance < MIN_DIST * 4 && hero.pos.x < enemy.pos.x) {
+      doJump();
+    }
+
+    return debug;
+  }
+
+  function render() {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    enemy.render(ctx);
+    hero.render(ctx);
+
+    if (frames - whenClicked < 40) {
+      canClick.color = '#978400';
+    } else {
+      canClick.color = '#ffe400';
+    }
+
+    ctx.save();
+    ctx.fillStyle = '#333';
+    ctx.fillRect(0, FLOOR_Y, WIDTH, 10);
+    ctx.fillText(`Score: ${parseInt(score, 10)}   Player: [${hero.pos.x}, ${parseInt(hero.pos.y, 10)}]   j: ${hero.isJumping ? 1 : 0}   k: ${hasClicked ? 1 : 0}   Floor: [--, ${FLOOR_Y}]`, 100, 55);
+    ctx.restore();
+
+    canClick.render(ctx);
+  }
+
+  var frames = 0;
+  var score = 0;
+
+  function update() {
+    var gravity = new Vec2(0, G_FORCE);
+    var wind = new Vec2(W_FORCE, 0);
+    score += 0.01;
+
+    enemy.applyForce(wind);
+    enemy.move();
+    enemy.vel.scale(0);
+
+    if (enemy.pos.x < -enemy.r * 3) {
+      enemy.pos.x = WIDTH + enemy.r * 3;
+    }
+
+    hero.applyForce(gravity);
+    hero.move();
+
+    if (hasClicked && !hero.isJumping && hero.pos.y === FLOOR_Y) {
+      hero.vel.y = -15;
+      hero.isJumping = true;
+    }
+
+    if (hero.pos.y + hero.r >= FLOOR_Y) {
+      hero.pos.y = FLOOR_Y - hero.r;
+      hero.isJumping = false;
+      hasClicked = false;
+    }
+
+    var dx = hero.pos.x - enemy.pos.x;
+    var dy = hero.pos.y - enemy.pos.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < hero.r + enemy.r) {
+      hero.color = PLAYER_DEAD_COLOR;
+      hero.dead = true;
+    } else {
+      hero.color = PLAYER_ALIVE_COLOR;
+    }
+
+    frames++;
+    return juju(hero, enemy);
+  }
+
+  var lastTime = 0;
+  var framefrate = 16;
+  var diff = 0;
+
+  function tick(timestamp) {
+    diff = timestamp - lastTime;
+
+    if (hero.dead) {
+      return;
+    }
+
+    requestAnimationFrame(tick);
+
+    if (diff < framefrate) {
+      return;
+    }
+
+    var debug = update();
+    render();
+    debug(ctx);
+    lastTime = timestamp;
+  }
+
+  function doJump() {
+    hasClicked = true;
+    if (!hero.isJumping) {
+      whenClicked = frames;
+    }
+  }
+
+  setTimeout(function () {
+    return;
+    tick();
+    document.body.addEventListener('keydown', function (e) {
+      switch (e.keyCode) {
+        case 32: // space bar
+        case 38: // up
+          doJump();
+          break;
+      }
+    });
+    canvas.addEventListener('click', doJump);
+  }, 0);
+</script>
+</body>
+</html>
