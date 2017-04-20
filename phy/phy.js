@@ -124,6 +124,11 @@ Neuron.prototype.activate = function(inputs, weight, bias, sumOnly) {
   return 1 / (1 + Math.exp(1 - sum));
 };
 
+function DNA(dna) {
+  this.dna = dna;
+  this.fitness = 0;
+}
+
 function Net (inputs, hiddenLayers, outputLayer) {
   this.inputs = inputs;
   this.layers = [];
@@ -230,33 +235,24 @@ Net.prototype.mutateWeights = function(predicate) {
       });
     });
   });
+};
+
+function frand(min, max) {
+  // If only valMin is supplied, make range [0, valMin]
+  if (min && !max) {
+    max = min;
+    min = 0;
+  }
+
+  return Math.random() * (max - min) + min;
 }
 
-var n = new Net(2, [3, 3], 1);
+function formatTime(millies) {
+  var d = Number(millies / 1000);
 
-function xp() {
-  console.log('NET', n);
+  var h = Math.floor(d / 3600);
+  var m = Math.floor(d % 3600 / 60);
+  var s = Math.floor(d % 3600 % 60);
 
-  [
-    [150, -3],
-    [110, -3],
-    [100, -3],
-    [50, -3],
-    [10, -3],
-    [5, -3],
-    [1, -3],
-  ].forEach(function(inputs, i) {
-    console.log('--- ## RUN ' + i);
-    console.log(` >> ${JSON.stringify(inputs)}`);
-    var out = n.run(inputs);
-    console.log(` << ${JSON.stringify(out)}`);
-
-    n.weights = n.mutateWeights(function(value) {
-      return Math.random() / value;
-    });
-
-    // console.log(`WEIGHTS: ${JSON.stringify(n.weights)}`)
-  });
+  return `00${h}`.slice(-2) + ':' + `00${m}`.slice(-2) + ':' + `00${s}`.slice(-2);
 }
-
-xp();

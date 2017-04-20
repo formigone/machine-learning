@@ -6,12 +6,34 @@
   <style>
     body {
       background: #333;
+      margin: 0;
+      padding: 0;
     }
 
     canvas {
       display: block;
       margin: 50px auto;
       box-shadow: 0 10px 30px #000;
+    }
+
+    .container {
+      margin: 10px auto;
+      overflow: auto;
+      width: 100%;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .col {
+      float: left;
+      width: 50%;
+      padding: 1em;
+      box-sizing: border-box;
+    }
+
+    .col h1, .col p {
+      margin-top: 0;
+      padding-top: 0;
     }
   </style>
 </head>
@@ -38,9 +60,25 @@
   var PLAYER_DEAD_COLOR = 'rgba(178, 36, 56, 0.5)';
   var PLAYER_ALIVE_COLOR = 'rgba(178, 36, 56, 1)';
 
-  var enemy = new Circle(new Vec2(0 - WIDTH, FLOOR_Y - 30), 30, '#4a952d');
-  var hero = new Circle(new Vec2(WIDTH / 4, 0), 10, '#c00');
+  var enemy = genEnemy();
+  var hero = genHero();
   var canClick = new Circle(new Vec2(50, 50), 10, '#ffe400');
+
+  function genEnemy(x, y, speed) {
+    x = x || 0 - WIDTH;
+    y = y || FLOOR_Y - 30;
+    speed = speed || 30;
+
+    return new Circle(new Vec2(x, y), speed, '#4a952d');
+  }
+
+  function genHero(x, y, speed) {
+    x = x || WIDTH / 4;
+    y = y || 0;
+    speed = speed || 10;
+
+    return new Circle(new Vec2(x, y), speed, '#c00');
+  }
 
   function juju(hero, enemy) {
     var dx = hero.pos.x - enemy.pos.x;
@@ -56,7 +94,7 @@
     };
 
     if (!hero.isJumping && distance < MIN_DIST * 4 && hero.pos.x < enemy.pos.x) {
-      doJump();
+//      doJump();
     }
 
     return debug;
@@ -133,20 +171,20 @@
   var diff = 0;
 
   function tick(timestamp) {
+    requestAnimationFrame(tick);
     diff = timestamp - lastTime;
 
-    if (hero.dead) {
-      return;
+    if (diff < framefrate) {
+//      return;
     }
 
-    requestAnimationFrame(tick);
-
-    if (diff < framefrate) {
-      return;
+    if (hero.dead) {
+      resetGame();
     }
 
     var debug = update();
     render();
+    renderGeneticDebug('genes');
     debug(ctx);
     lastTime = timestamp;
   }
@@ -158,8 +196,124 @@
     }
   }
 
+  var net = new Net(2, [3, 3], 1);
+
+  /**
+   *
+   * @param {Array} layerFormat
+   * @param {number} min
+   * @param {number} max
+   */
+  function dnaToWeights(layerFormat, min, max) {
+    return layerFormat.map(function(layer) {
+      if (layer instanceof Array) {
+        return dnaToWeights(layer, min, max);
+      }
+
+      var genome = [];
+      for (var i = 0; i < layer; i++) {
+        genome.push(frand(min, max));
+      }
+      return genome;
+    });
+  }
+
+  function genRandomGenome(len, min, max) {
+    var genome = [];
+    for (var i = 0; i < len; i++) {
+      genome.push(frand(min, max));
+    }
+    return genome;
+  }
+
+  var populationSize = 10;
+  var population = [];
+  var currentGeneration = 0;
+  var currentGene = 0;
+  var maxFit = 0;
+  var mostFitGene = 0;
+  var startTime = Date.now();
+
+  function getNodeById(id, className) {
+    var node = document.getElementById(id);
+    if (!node) {
+      node = document.createElement('div');
+      node.id = id;
+
+      if (className) {
+        node.className = className;
+      }
+
+      document.body.appendChild(node);
+    }
+
+    return node;
+  }
+
+  function resetGame() {
+    enemy = genEnemy();
+    hero = genHero();
+    population[currentGene].fitness = score;
+    if (score > maxFit) {
+      maxFit = score;
+      mostFitGene = currentGene;
+    }
+    score = 0;
+
+    currentGene = (currentGene + 1) % populationSize;
+    mostFitGene = randInt(0, 9);
+    if (currentGene === 0) {
+      currentGeneration += 1;
+    }
+  }
+
+  function renderGeneticDebug(containerId) {
+    var container = getNodeById(containerId, 'container');
+    var leftCol = getNodeById(containerId + '-left', 'col');
+    var rightCol = getNodeById(containerId + '-right', 'col');
+
+    container.appendChild(leftCol);
+    container.appendChild(rightCol);
+
+    leftCol.textContent = 'Left';
+
+    population.sort(function(a, b) {
+      if (a.fitness > b.fitness) {
+        return 1;
+      }
+
+      if (a.fitness < b.fitness) {
+        return -1;
+      }
+
+      return 0;
+    });
+
+    rightCol.innerHTML = '';
+    population.forEach(function(dna, index) {
+      var html = '[';
+      dna.dna.forEach(function(val, index) {
+        html += Number(val).toFixed(2) + (index < dna.dna.length - 1 ? ', ' : ']');
+      });
+      rightCol.innerHTML += html + '<br/>';
+    });
+
+    var timeDiff = Math.abs(Date.now() - startTime);
+    leftCol.innerHTML = `
+      <h1>Highest fitness: ${Number(maxFit).toFixed(2)}</h1>
+      <p>Generation: ${currentGeneration}</p>
+      <p>Gene: ${currentGene}</p>
+      <p>Best gene: ${population[mostFitGene].dna.map(function(val) { return Number(val).toFixed(2);}).join(', ')}</p>
+      <p>Lapsed time: ${formatTime(timeDiff)}</p>
+    `;
+  }
+
+  for (var i = 0; i < populationSize; i++) {
+//    dnaToWeights([[3, 3, 3], [4, 4, 4], [4]], 0.5, 5))
+    population.push(new DNA(genRandomGenome(3 * 3 + 3 * 4 + 4, 0.5, 5)));
+  }
+
   setTimeout(function () {
-    return;
     tick();
     document.body.addEventListener('keydown', function (e) {
       switch (e.keyCode) {
