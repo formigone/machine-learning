@@ -1,0 +1,13 @@
+<div class="newslist-item">
+    <a href="{{ story.href }}">
+        <img src="{{ story.img }}" alt="{{ story.title }}" />
+    </a>
+    <h2>
+        <a href="{{ story.href }}">{{ story.title }}</a>
+    </h2>
+    <hr/>
+    {% if story.summary is defined %}
+        <h3>{{ story.summary }}</h3>
+    {% endif %}
+    <hr class="spacer" />
+</div>

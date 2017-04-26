@@ -1,0 +1,4 @@
+<h3>{{ listName }}</h3>
+{% for item in newslist %}
+    {% include 'newslist-item.twig' with { 'story' : item }%}
+{% endfor %}

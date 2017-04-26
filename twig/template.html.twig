@@ -1,0 +1,97 @@
+<div style="clear: both;"></div>
+<div class="formDividerWd" id="cmt_top" style="background: #5B92F4; padding: 3%; margin: 3% 0 5% 0;">
+    <span style="float: right; color: #fff; ">{% if commentTotals.pending > 0 %}{{ commentTotals.pending }}{% else %}0{% endif %}
+        Pending</span>
+    <div class="comment_bubble_inverted" style="background: #fff; text-align: center; ">
+        <span style=" font-size: 1em; color: #5B92F4;">{{ commentTotals.count }}</span>
+    </div>
+    <span style="color: #fff;">Comments</span>
+</div>
+
+<!-- TODO: readd reauth here-->
+{% if disableNewComments != true and SESSION.mid is defined and SESSION.REAUTH.comments is defined %}
+    {#{% if commentTotals.comment_accept == true and commentTotals.comment_accept != 'login' and GLOBALS.REAUTH.comments %}#}
+    <div class="fadeMe"></div>
+    <div class="reauth-box">
+        <h2 style="margin: 0px;">You must re-login before participating in the KSL.com comment board</h2>
+        <h4>To post or vote on comments, it is necessary to re-authenticate your login after 48 hours.</h4>
+        <div class="error"></div>
+        <div class="reauthinputmn"><span>email:</span><br /><input type="text" id="reauth_email" /></div>
+        <div class="reauthinputmn"><span>password:</span><br /><input type="password" id="reauth_password" /></div>
+        <h3 style="color: #fff;">
+            Re-Login
+        </h3>
+        <h4 style="color: #111;">To continue without re-login
+            <button data-intent="close">Click Here</button>
+        </h4>
+    </div>
+{% endif %}
+
+<div id="cmt_mn">
+    <div style='clear: both;'></div>
+
+    <div>
+        <a href="?sid=160754&nid=250">View the KSL.com Comment Board Guidelines &raquo;</a>
+    </div>
+
+    <!-- TODO: readd reauth here-->
+    {% if disableNewComments != true and SESSION.mid is defined and SESSION.REAUTH.comments is not defined %}
+        <div id="reply_div_0" class="reply_div" style='display: block;'>
+            <textarea id="reply_0" class="replytext" alt="0"
+                      placeholder="Type your comment here. Keep it civil and stay on topic."></textarea>
+            <div class="buttonBox">
+                <div id="reply_post_0" class="replybuttonsubmit"
+                     style=" color: #fff !important;  background: #5B92F4;  width: 25%; height: auto;  padding: 2%;  float: right;"
+                     onclick=""
+                     alt="0">post
+                </div>
+            </div>
+        </div>
+    {% elseif SESSION.mid is not defined %}
+        <div class="notaccepting" style='margin-top: 5px; margin-bottom: 5px;'>
+            You must be logged in to post a comment.<br />
+            <a href='/public/member/signin?login_forward={{ url }}'>login here</a>
+        </div>
+    {% elseif disableNewComments == true %}
+        <div class="notaccepting" style='margin-top: 5px; margin-bottom: 5px;'>
+            Sorry, we are not accepting new comments on this story, but if you have more to contribute please email <a
+                    style='font-size: 12px; color: #369;' href='mailto:newstip@ksl.com'>newstip@ksl.com</a>
+        </div>
+    {% endif %}
+    <div style="clear: both;"></div>
+
+    <ul id="commentSorting" class="ctx-menu">
+        <li class="ctx-menu--option ctx-menu--option__active"
+            style="width: {% if SESSION.member.group.root is defined %}25%{% else %}35%{% endif %};">
+            <a href="#" data-value="oldest">Oldest</a>
+        </li>
+        <li class="ctx-menu--option"
+            style="width: {% if SESSION.member.group.root is defined %}25%{% else %}35%{% endif %};">
+            <a href="#" data-value="newest">Newest</a>
+        </li>
+        <li class="ctx-menu--option"
+            style="width: {% if SESSION.member.group.root is defined %}25%{% else %}35%{% endif %};">
+            <a href="#" data-value="popular">Popular</a>
+        </li>
+    </ul>
+
+    <ul id="commentBoard"></ul>
+    {% if commentTotals.count > 0 %}
+        <div style="clear: both; max-width: 100%;">
+            <button id="loadMore" class="button">Load More Comments</button>
+        </div>
+    {% endif %}
+    <div class="mainCount">Showing <span class="pagesize"></span> of {{ commentTotals.count }} comments</div>
+    {% if commentTotals.count > 0 %}
+        {% if disableNewComments == true %}
+            <div class="notaccepting" style='margin-top: 5px;'>
+                Sorry, we are not accepting new comments on this story, but if you have more to contribute please email
+                <a style='font-size: 12px; color: #369;' href='mailto:newstip@ksl.com'>newstip@ksl.com</a>
+            </div>
+            <div class="notaccepting" style='margin-top: 5px;'>
+                You must be logged in to post a comment.<br />
+                <a href='/public/member/signin?login_forward={{ url }}'>login here</a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
