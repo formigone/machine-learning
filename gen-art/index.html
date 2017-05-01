@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+  <title>Genetic Algorithm Art</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    .container {
+      width: 100%;
+      overflow: auto;
+    }
+
+    .col-50 {
+      width: 50%;
+      float: left;
+    }
+
+    img {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+<script>
+  function el(type, props, children) {
+    var element = document.createElement(type);
+
+    Object.keys(props || {}).map((key) => {
+      element.setAttribute(key, props[key]);
+    });
+
+    if (typeof children === 'number' || typeof children === 'string') {
+      element.textContent = children;
+    } else if (children instanceof HTMLElement) {
+      element.appendChild(children);
+    }
+
+    if (children instanceof Array) {
+      children.forEach((child) => {
+        if (typeof child === 'number' || typeof children === 'string') {
+          element.textContent = child;
+        } else if (child instanceof HTMLElement) {
+          element.appendChild(child);
+        }
+      });
+    }
+
+    return element;
+  }
+
+
+  var canvas = el('canvas');
+  var ctx = canvas.getContext('2d');
+  var fileSelect = el('input', { type: 'file' });
+  var imgTarget = el('img');
+  var body = document.body;
+
+  var debug_generationCount = el('p', {}, 'Generation: ');
+  var debug_generations = el('ul');
+
+  var population = [];
+  var dataTarget = [];
+  var kernel = 8;
+
+  function Pixel(r, g, b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+
+  function render() {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0 ,10, 10);
+
+    console.log(`Total pixels: ${dataTarget.length}`);
+
+    var radius = kernel / 2;
+    var angle = 2 * Math.PI;
+
+    dataTarget.forEach((pixel, i) => {
+      var y = Math.floor(i / canvas.width);
+      var x = i % canvas.width;
+      var color = `rgb(${pixel.r},${pixel.g},${pixel.b})`;
+
+      ctx.fillStyle = color;
+
+      ctx.beginPath();
+      ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  function start() {
+    canvas.width = imgTarget.width;
+    canvas.height = imgTarget.height;
+
+    var cvs = document.createElement('canvas');
+    cvs.width = canvas.width;
+    cvs.height = canvas.height;
+    ctx = cvs.getContext('2d');
+
+    ctx.drawImage(imgTarget, 0, 0, canvas.width, canvas.height);
+
+    var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    dataTarget = [];
+
+    for (let i = 0, len = img.data.length; i < len; i += kernel * 4) {
+      if (i < 50) {
+        console.log(` >> ${i}`)
+      }
+      dataTarget.push(new Pixel(img.data[i], img.data[i + 1], img.data[i + 2]));
+    }
+
+    ctx = canvas.getContext('2d');
+
+    render();
+  }
+
+  function init() {
+    body.appendChild(el('div', { class: 'container' }, [
+      el('div', { class: 'col-50' }, canvas),
+      el('div', { class: 'col-50' }, imgTarget),
+    ]));
+//  body.appendChild(fileSelect);
+    body.appendChild(debug_generationCount);
+    body.appendChild(debug_generations);
+
+    imgTarget.addEventListener('load', start);
+    imgTarget.setAttribute('src', '/gen-art/happy.jpg');
+
+//  fileSelect.addEventListener('change', (event) => {
+//    var url = URL.createObjectURL(event.target.files[0]);
+//    imgTarget.src = url;
+//  });
+  }
+
+  init();
+</script>
+</body>
+</html>

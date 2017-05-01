@@ -65,7 +65,7 @@
   var canClick = new Circle(new Vec2(50, 50), 10, '#ffe400');
 
   function genEnemy(x, y, speed) {
-    x = x || 0 - WIDTH;
+    x = x || WIDTH - WIDTH / 4;
     y = y || FLOOR_Y - 30;
     speed = speed || 30;
 
@@ -80,22 +80,32 @@
     return new Circle(new Vec2(x, y), speed, '#c00');
   }
 
-  function juju(hero, enemy) {
+  function letTheMachineHaveATry(hero, enemy) {
+    var counter = 0;
+    net.weights = net.mutateWeights(function(value, layerIndex, weightsIndex, valueIndex) {
+      return population[currentGene].dna[counter++];
+    });
+
     var dx = hero.pos.x - enemy.pos.x;
     var dy = hero.pos.y - enemy.pos.y;
     var distance = Math.sqrt(dx * dx + dy * dy);
-    var MIN_DIST = hero.r + enemy.r;
+
+    var out = net.run([distance, W_FORCE]);
 
     var debug = function(ctx) {
       ctx.save();
       ctx.fillStyle = '#0c0';
       ctx.fillText(`Dist: ${Number(distance).toFixed(2)}`, 100, 75);
+      ctx.fillText(`Network: ${Number(out).toFixed(6)}`, 100, 90);
       ctx.restore();
     };
 
-    if (!hero.isJumping && distance < MIN_DIST * 4 && hero.pos.x < enemy.pos.x) {
-//      doJump();
+    if (out < 0.999991) {
+      doJump();
     }
+//    if (!hero.isJumping && distance < MIN_DIST * 4 && hero.pos.x < enemy.pos.x) {
+//      doJump();
+//    }
 
     return debug;
   }
@@ -125,6 +135,7 @@
   var score = 0;
 
   function update() {
+    W_FORCE = -5 - parseInt(score, 10);
     var gravity = new Vec2(0, G_FORCE);
     var wind = new Vec2(W_FORCE, 0);
     score += 0.01;
@@ -163,7 +174,7 @@
     }
 
     frames++;
-    return juju(hero, enemy);
+    return letTheMachineHaveATry(hero, enemy);
   }
 
   var lastTime = 0;
@@ -261,9 +272,10 @@
     score = 0;
 
     currentGene = (currentGene + 1) % populationSize;
-    mostFitGene = randInt(0, 9);
+//    mostFitGene = randInt(0, 9);
     if (currentGene === 0) {
       currentGeneration += 1;
+      // TODO: crossover + mutate in order to build next generation
     }
   }
 
