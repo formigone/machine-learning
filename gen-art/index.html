@@ -26,6 +26,8 @@
   </style>
 </head>
 <body>
+
+<h1>TODO: make each pixel a gene, and the collection of pixels forming the pixel the entire population. Fitness is then computed at the pixel level (vs entire composition)</h1>
 <script>
   function el(type, props, children) {
     var element = document.createElement(type);
@@ -60,12 +62,20 @@
   var imgTarget = el('img');
   var body = document.body;
 
-  var debug_generationCount = el('p', {}, 'Generation: ');
+  var debug_generationCount = el('p', {}, '');
+  var debug_minScore = el('p', {}, '');
   var debug_generations = el('ul');
 
+  var MAX_POPULATIONS = 10;
+  var generation = 0;
   var population = [];
   var dataTarget = [];
   var kernel = 8;
+
+  function DNA(gene) {
+    this.gene = gene;
+    this.fitness = 0;
+  }
 
   function Pixel(r, g, b) {
     this.r = r;
@@ -73,22 +83,33 @@
     this.b = b;
   }
 
+  Pixel.prototype.diff = function(pixel) {
+    var mean = (this.r + pixel.r) / 2;
+    var r = this.r - pixel.r;
+    var g = this.g - pixel.g;
+    var b = this.b - pixel.b;
+
+    return Math.sqrt((((512 + mean) * r * r) >> 8) + 4 * g * g + (((767 - mean) * b * b) >> 8));
+  };
+
+  Pixel.prototype.toString = function(){
+    return `rgb(${this.r}, ${this.g}, ${this.b})`;
+  };
+
   function render() {
+    var fittest = population[0];
+
     ctx.save();
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0 ,10, 10);
 
-    console.log(`Total pixels: ${dataTarget.length}`);
-
     var radius = kernel / 2;
     var angle = 2 * Math.PI;
 
-    dataTarget.forEach((pixel, i) => {
+    fittest.gene.forEach((pixel, i) => {
       var y = Math.floor(i / canvas.width);
       var x = i % canvas.width;
-      var color = `rgb(${pixel.r},${pixel.g},${pixel.b})`;
-
-      ctx.fillStyle = color;
+      ctx.fillStyle = pixel.toString();
 
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
@@ -97,6 +118,26 @@
     });
 
     ctx.restore();
+
+    debug_generationCount.textContent = `Generation: ${generation} `;
+    debug_minScore.textContent = `Best fitness: ${fittest.fitness}`;
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function genRandomPopulation(dataSize, populationSize) {
+    var population = [];
+    for (var i = 0; i < populationSize; i++) {
+      var gene = [];
+      for (var j = 0; j < dataSize; j++) {
+        gene.push(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255)));
+      }
+      population.push(new DNA(gene));
+    }
+
+    return population;
   }
 
   function start() {
@@ -114,13 +155,30 @@
     dataTarget = [];
 
     for (let i = 0, len = img.data.length; i < len; i += kernel * 4) {
-      if (i < 50) {
-        console.log(` >> ${i}`)
-      }
       dataTarget.push(new Pixel(img.data[i], img.data[i + 1], img.data[i + 2]));
     }
 
     ctx = canvas.getContext('2d');
+
+    population = genRandomPopulation(dataTarget.length, MAX_POPULATIONS);
+
+    nextGeneration();
+  }
+
+  function nextGeneration() {
+    population.forEach((dna) => {
+      var score = 0;
+      dna.gene.forEach((pixel, i) => {
+        score += pixel.diff(dataTarget[i]);
+      });
+
+      dna.fitness = score;
+    });
+
+
+    console.log(population)
+
+
 
     render();
   }
