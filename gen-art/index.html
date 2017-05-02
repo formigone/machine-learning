@@ -20,14 +20,13 @@
       float: left;
     }
 
-    img {
+    img, canvas {
       width: 100%;
     }
   </style>
 </head>
 <body>
 
-<h1>TODO: make each pixel a gene, and the collection of pixels forming the pixel the entire population. Fitness is then computed at the pixel level (vs entire composition)</h1>
 <script>
   function el(type, props, children) {
     var element = document.createElement(type);
@@ -70,7 +69,8 @@
   var generation = 0;
   var population = [];
   var dataTarget = [];
-  var kernel = 8;
+  var MAX_WIDTH = 50;
+  var kernel = 1;
 
   function DNA(gene) {
     this.gene = gene;
@@ -107,10 +107,9 @@
     var angle = 2 * Math.PI;
 
     fittest.gene.forEach((pixel, i) => {
-      var y = Math.floor(i / canvas.width);
-      var x = i % canvas.width;
+      var y = Math.floor(i / MAX_WIDTH);
+      var x = i % MAX_WIDTH;
       ctx.fillStyle = pixel.toString();
-
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
       ctx.closePath();
@@ -130,11 +129,11 @@
   function genRandomPopulation(dataSize, populationSize) {
     var population = [];
     for (var i = 0; i < populationSize; i++) {
-      var gene = [];
+      var region = [];
       for (var j = 0; j < dataSize; j++) {
-        gene.push(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255)));
+        region.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
       }
-      population.push(new DNA(gene));
+      population.push(region);
     }
 
     return population;
@@ -152,20 +151,52 @@
     ctx.drawImage(imgTarget, 0, 0, canvas.width, canvas.height);
 
     var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    kernel = Math.floor(img.width / MAX_WIDTH);
+    console.log('kernel', kernel)
+    console.log('WIDTH', MAX_WIDTH)
+    console.log('WIDTH', img.width)
     dataTarget = [];
 
-    for (let i = 0, len = img.data.length; i < len; i += kernel * 4) {
-      dataTarget.push(new Pixel(img.data[i], img.data[i + 1], img.data[i + 2]));
+    var g = [];
+    for (let i = 0, len = img.data.length; i < len;) {
+      const pixel = new Pixel(img.data[i], img.data[i + 1], img.data[i + 2]);
+      dataTarget.push(pixel);
+
+      g.push(pixel);
+//      console.log(`%: ${(i / 4)}, i = ${i}, width = ${img.width}`)
+      if (dataTarget.length % MAX_WIDTH === 0) {
+        // Skip K rows of pixels
+        i += kernel * 4 + img.width * 4 * kernel;
+      } else {
+        // Skip K pixels to the right (columns)
+        i += kernel * 4;
+      }
     }
-
+console.log(`Total pixels: ${g.length}`)
+    population = [new DNA(g)];
     ctx = canvas.getContext('2d');
+//    population = genRandomPopulation(dataTarget.length, MAX_POPULATIONS);
+    render();
 
-    population = genRandomPopulation(dataTarget.length, MAX_POPULATIONS);
-
-    nextGeneration();
+//    setTimeout(nextGeneration, 0);
   }
 
   function nextGeneration() {
+//    dataTarget.forEach((pixel, i) => {
+      // TODO: iterate each pixel instead of just the first one
+      const pixel = dataTarget[0];
+      const i = 0;
+
+      let minScore = Number.MAX_SAFE_INTEGER;
+      let minScoreIndex = 0;
+
+      population.forEach((pool) => {
+        const dna = pool[0];
+        console.log('DNA', dna)
+      });
+//    });
+
+
     population.forEach((dna) => {
       var score = 0;
       dna.gene.forEach((pixel, i) => {
@@ -193,7 +224,7 @@
     body.appendChild(debug_generations);
 
     imgTarget.addEventListener('load', start);
-    imgTarget.setAttribute('src', '/gen-art/happy.jpg');
+    imgTarget.setAttribute('src', '/gen-art/happy-sm.jpg');
 
 //  fileSelect.addEventListener('change', (event) => {
 //    var url = URL.createObjectURL(event.target.files[0]);
