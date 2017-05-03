@@ -69,7 +69,7 @@
   var generation = 0;
   var population = [];
   var dataTarget = [];
-  var MAX_WIDTH = 80;
+  var MAX_WIDTH = 10;
   var kernel = 1;
 
   function DNA(gene) {
@@ -98,28 +98,29 @@
 
   function render() {
     var fittest = population[0];
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0 ,10, 10);
 
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0 ,10, 10);
+      var radius = kernel / 2;
+      var angle = 2 * Math.PI;
 
-    var radius = kernel / 2;
-    var angle = 2 * Math.PI;
-
-    fittest.gene.forEach((pixel, i) => {
-      var x = i % fittest.width;
-      var y = Math.floor(i / fittest.width);
-      ctx.fillStyle = pixel.toString();
+    for (let i = 0, len = fittest.length; i < len; i++) {
+//      ctx.save();
+//      fittest[0][i].gene.forEach((pixel, i) => {
+      var x = i % fittest[i].width;
+      var y = Math.floor(i / fittest[i].width);
+      ctx.fillStyle = fittest[i].gene.toString();
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
       ctx.closePath();
       ctx.fill();
-    });
 
-    ctx.restore();
+//      });
+//      ctx.restore();
+    }
 
     debug_generationCount.textContent = `Generation: ${generation} `;
-    debug_minScore.textContent = `Best fitness: ${fittest.fitness}`;
+//    debug_minScore.textContent = `Best fitness: ${fittest.fitness}`;
 
 
 //    setTimeout(() => {
@@ -165,23 +166,37 @@
 //    console.log('img.width', img.width)
 //    console.log('img', img)
 
-    var g = [];
-    var rowWidth = 0;
-    PixelList.takeRows(img.data, img.width * 4, function(row, y) {
-      if (y % kernel === 0) {
-        rowWidth = 0;
-        for (let i = 0, len = row.length; i < len; i += 1) {
-          if (i % kernel === 0) {
-            const pixel = new Pixel(row[i][0], row[i][1], row[i][2]);
-            g.push(pixel);
-            rowWidth += 1;
+    for (var n = 0; n < MAX_POPULATIONS; n++) {
+      var rowWidth = 0;
+      if (n === 0) {
+        PixelList.takeRows(img.data, img.width * 4, function(row, y) {
+          if (y % kernel === 0) {
+            rowWidth = 0;
+            for (let i = 0, len = row.length; i < len; i += 1) {
+              if (i % kernel === 0) {
+                const pixel = new Pixel(row[i][0], row[i][1], row[i][2]);
+                dataTarget.push(pixel);
+                rowWidth += 1;
+              }
+            }
           }
-        }
-      }
-    });
+        });
 
-    population = [new DNA(g)];
-    population[0].width = rowWidth;
+//        dataTarget.push(gen);
+      }
+
+      var gen = [];
+      for (var m = 0, pixel, dna; m < dataTarget.length; m++) {
+        pixel = new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255));
+        dna = new DNA(pixel);
+        dna.width = rowWidth;
+        gen.push(dna);
+      }
+
+      population.push(gen);
+    }
+    console.log('POP', population)
+
     ctx = canvas.getContext('2d');
     render();
   }
