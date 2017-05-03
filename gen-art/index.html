@@ -63,14 +63,18 @@
 
   var debug_generationCount = el('p', {}, '');
   var debug_minScore = el('p', {}, '');
-  var debug_generations = el('ul');
+  var debug_mutationRate = el('p', {}, '');
 
-  var MAX_POPULATIONS = 10;
+  var MAX_WIDTH = 2;
+  var MAX_POPULATIONS = 100;
+  var MAX_CYCLES = 500;
+  var MUTATION_RATE = 0.05;
   var generation = 0;
+  var baseFitness = 0;
   var population = [];
   var dataTarget = [];
-  var MAX_WIDTH = 10;
   var kernel = 1;
+  var rowWidth = 0;
 
   function DNA(gene) {
     this.gene = gene;
@@ -83,7 +87,9 @@
     this.b = b;
   }
 
-  Pixel.prototype.diff = function(pixel) {
+  Pixel.prototype.diff = function (pixel) {
+    return (this.r - pixel.r) + (this.g - pixel.g) + (this.b - pixel.b);
+
     var mean = (this.r + pixel.r) / 2;
     var r = this.r - pixel.r;
     var g = this.g - pixel.g;
@@ -92,43 +98,78 @@
     return Math.sqrt((((512 + mean) * r * r) >> 8) + 4 * g * g + (((767 - mean) * b * b) >> 8));
   };
 
-  Pixel.prototype.toString = function(){
+  Pixel.avg = function (a, b) {
+//    return new Pixel(
+//      Math.floor((a.r + b.r) / 2),
+//      Math.floor((a.g + b.g) / 2),
+//      Math.floor((a.b + b.b) / 2)
+//    );
+
+    var pixel = new Pixel(0, 0, 0);
+    pixel.r = a.r;
+    pixel.g = Math.random() > 0.5 ? a.g : b.g;
+    pixel.b = b.b;
+
+    return pixel;
+  };
+
+  Pixel.prototype.mix = function(rate) {
+    if (Math.random() <= rate) {
+      this.r = (this.r + randInt(0, 10)) % 255;
+    }
+    if (Math.random() <= rate) {
+      this.g = (this.g + randInt(0, 10)) % 255;
+    }
+    if (Math.random() <= rate) {
+      this.b = (this.b + randInt(0, 10)) % 255;
+    }
+
+    return this;
+  };
+
+  Pixel.prototype.toString = function () {
     return `rgb(${this.r}, ${this.g}, ${this.b})`;
   };
 
   function render() {
-    var fittest = population[0];
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0 ,10, 10);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, 10, 10);
 
-      var radius = kernel / 2;
-      var angle = 2 * Math.PI;
+    var radius = kernel / 2;
+    var angle = 2 * Math.PI;
 
-    for (let i = 0, len = fittest.length; i < len; i++) {
-//      ctx.save();
-//      fittest[0][i].gene.forEach((pixel, i) => {
-      var x = i % fittest[i].width;
-      var y = Math.floor(i / fittest[i].width);
-      ctx.fillStyle = fittest[i].gene.toString();
+    for (let i = 0, len = population.length; i < len; i++) {
+      var pixel = population[i][0];
+      var x = i % rowWidth;
+      var y = Math.floor(i / rowWidth);
+      ctx.fillStyle = pixel.gene.toString();
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
       ctx.closePath();
       ctx.fill();
-
-//      });
-//      ctx.restore();
     }
 
     debug_generationCount.textContent = `Generation: ${generation} `;
-//    debug_minScore.textContent = `Best fitness: ${fittest.fitness}`;
+    debug_minScore.textContent = `Base fitness: ${baseFitness} `;
+    debug_mutationRate.textContent = `Mutationrate: ${MUTATION_RATE} `;
+  }
 
+  function renderTarget() {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, 10, 10);
 
-//    setTimeout(() => {
-//      MAX_WIDTH -= 1;
-//      if (MAX_WIDTH > 10) {
-//        start();
-//      }
-//    }, 0);
+    var radius = kernel / 2;
+    var angle = 2 * Math.PI;
+
+    for (let i = 0, len = dataTarget.length; i < len; i++) {
+      var x = i % rowWidth;
+      var y = Math.floor(i / rowWidth);
+      ctx.fillStyle = dataTarget[i].toString();
+      ctx.beginPath();
+      ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 
   function randInt(min, max) {
@@ -137,12 +178,18 @@
 
   function genRandomPopulation(dataSize, populationSize) {
     var population = [];
-    for (var i = 0; i < populationSize; i++) {
-      var region = [];
-      for (var j = 0; j < dataSize; j++) {
-        region.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
+    for (var p = 0; p < dataSize; p++) {
+      var row = [];
+      for (var i = 0; i < populationSize; i++) {
+//        if (i === 0) {
+//          row.push(new DNA(new Pixel(dataTarget[p].r, dataTarget[p].g, dataTarget[p].b)));
+//        } else {
+//          row.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
+//        }
+//          row.push(new DNA(new Pixel(dataTarget[p].r, dataTarget[p].g, dataTarget[p].b)));
+        row.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
       }
-      population.push(region);
+      population.push(row);
     }
 
     return population;
@@ -161,77 +208,90 @@
 
     var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
     kernel = Math.floor(img.width / MAX_WIDTH);
-//    console.log('kernel', kernel)
-//    console.log('MAX_WIDTH', MAX_WIDTH)
-//    console.log('img.width', img.width)
-//    console.log('img', img)
 
-    for (var n = 0; n < MAX_POPULATIONS; n++) {
-      var rowWidth = 0;
-      if (n === 0) {
-        PixelList.takeRows(img.data, img.width * 4, function(row, y) {
-          if (y % kernel === 0) {
-            rowWidth = 0;
-            for (let i = 0, len = row.length; i < len; i += 1) {
-              if (i % kernel === 0) {
-                const pixel = new Pixel(row[i][0], row[i][1], row[i][2]);
-                dataTarget.push(pixel);
-                rowWidth += 1;
-              }
-            }
+    PixelList.takeRows(img.data, img.width * 4, function (row, y) {
+      if (y % kernel === 0) {
+        rowWidth = 0;
+        for (let i = 0, len = row.length; i < len; i += 1) {
+          if (i % kernel === 0) {
+            const pixel = new Pixel(row[i][0], row[i][1], row[i][2]);
+            dataTarget.push(pixel);
+            rowWidth += 1;
           }
-        });
-
-//        dataTarget.push(gen);
+        }
       }
+    });
 
-      var gen = [];
-      for (var m = 0, pixel, dna; m < dataTarget.length; m++) {
-        pixel = new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255));
-        dna = new DNA(pixel);
-        dna.width = rowWidth;
-        gen.push(dna);
-      }
-
-      population.push(gen);
-    }
-    console.log('POP', population)
+    population = genRandomPopulation(dataTarget.length, MAX_POPULATIONS);
 
     ctx = canvas.getContext('2d');
-    render();
+    nextGeneration();
   }
 
   function nextGeneration() {
-//    dataTarget.forEach((pixel, i) => {
-      // TODO: iterate each pixel instead of just the first one
-      const pixel = dataTarget[0];
-      const i = 0;
+    population = population.map((pixelRow, i) => {
+      // Calculate everyone's fitness + keep track of total fitness (so it can be normalized)
+      var totalFitness = 0;
+      var fitnesses = [];
 
-      let minScore = Number.MAX_SAFE_INTEGER;
-      let minScoreIndex = 0;
-
-      population.forEach((pool) => {
-        const dna = pool[0];
-        console.log('DNA', dna)
-      });
-//    });
-
-
-    population.forEach((dna) => {
-      var score = 0;
-      dna.gene.forEach((pixel, i) => {
-        score += pixel.diff(dataTarget[i]);
+      pixelRow.forEach(dna => {
+        var fitness = dna.gene.diff(dataTarget[i]);
+        fitnesses.push(fitness);
+        totalFitness += fitness;
       });
 
-      dna.fitness = score;
+      pixelRow.forEach((dna, n) => {
+        dna.fitness = fitnesses[fitnesses.length - n - 1] / totalFitness;
+      });
+
+      pixelRow.sort((a, b) => {
+        if (a.fitness > b.fitness) {
+          return -1;
+        }
+
+        if (a.fitness < b.fitness) {
+          return 1;
+        }
+
+        return 0;
+      });
+
+      // Selection
+      const pool = [];
+      pixelRow.forEach((dna, n) => {
+        if (dna.fitness < 0.0001) {
+          return;
+        }
+        for (var p = 0, len = Math.floor(dna.fitness * 100) || 100; p < len; p++) {
+          pool.push(n);
+        }
+      });
+
+      if (i === 0) {
+        baseFitness = pixelRow[0].fitness;
+//        console.log(`${generation}:${pixelRow[0].fitness}`)
+//        console.log(pixelRow[0])
+        console.log({ pool, pixelRow })
+      }
+
+      return pixelRow.map(() => {
+        let randA = pool[randInt(0, pool.length - 1)];
+        let randB = pool[randInt(0, pool.length - 1)];
+        const parentA = pixelRow[randA];
+        const parentB = pixelRow[randB];
+        if (!parentA || !parentB) {
+          console.log('BOOM', { parentA, parentB, randA, randB, pool, pixelRow })
+        }
+        return new DNA(Pixel.avg(parentA.gene, parentB.gene).mix(MUTATION_RATE));
+//        return new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255)));
+      });
     });
 
-
-    console.log(population)
-
-
-
     render();
+    generation += 1;
+    if (generation < MAX_CYCLES) {
+      setTimeout(nextGeneration, 100);
+    }
   }
 
   function init() {
@@ -241,7 +301,8 @@
     ]));
 //  body.appendChild(fileSelect);
     body.appendChild(debug_generationCount);
-    body.appendChild(debug_generations);
+    body.appendChild(debug_minScore);
+    body.appendChild(debug_mutationRate);
 
     imgTarget.addEventListener('load', start);
     imgTarget.setAttribute('src', '/gen-art/happy-sm.jpg');
@@ -253,7 +314,7 @@
   }
 
   var PixelList = {
-    takeRows: function(grid, width, cb) {
+    takeRows: function (grid, width, cb) {
       for (var row = [], x, y, r, g, b, i = 0, len = grid.length; i < len; i += 4) {
         x = i % width;
         y = Math.floor(i / width);
