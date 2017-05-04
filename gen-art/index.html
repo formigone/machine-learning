@@ -64,17 +64,21 @@
   var debug_generationCount = el('p', {}, '');
   var debug_minScore = el('p', {}, '');
   var debug_mutationRate = el('p', {}, '');
+  var debug_totalMatches = el('p', {}, '');
 
-  var MAX_WIDTH = 2;
-  var MAX_POPULATIONS = 100;
-  var MAX_CYCLES = 500;
-  var MUTATION_RATE = 0.05;
+  var MAX_WIDTH = 50;
+  var MAX_POPULATIONS = 5;
+  var MAX_POPULATION_SIZE = 50;
+  var MAX_CYCLES = 1000;
+  var MUTATION_RATE = 0.008;
   var generation = 0;
   var baseFitness = 0;
   var population = [];
   var dataTarget = [];
   var kernel = 1;
   var rowWidth = 0;
+  var populationGrowthRate = 5;
+  let totalMatches = 0;
 
   function DNA(gene) {
     this.gene = gene;
@@ -88,40 +92,45 @@
   }
 
   Pixel.prototype.diff = function (pixel) {
-    return (this.r - pixel.r) + (this.g - pixel.g) + (this.b - pixel.b);
+    return ['r', 'g', 'b'].reduce((acc, channel) => {
+      const diff = Math.abs(this[channel] - pixel[channel]);
+      if (diff === 0) {
+        return acc + 100;
+      }
 
-    var mean = (this.r + pixel.r) / 2;
-    var r = this.r - pixel.r;
-    var g = this.g - pixel.g;
-    var b = this.b - pixel.b;
+      if (diff < 10) {
+        return acc + 25;
+      }
 
-    return Math.sqrt((((512 + mean) * r * r) >> 8) + 4 * g * g + (((767 - mean) * b * b) >> 8));
+      if (diff < 20) {
+        return acc + 10;
+      }
+
+      if (diff < 30) {
+        return acc + 5;
+      }
+
+      if (diff < 40) {
+        return acc + 1;
+      }
+
+      return acc;
+    }, 0);
   };
 
   Pixel.avg = function (a, b) {
-//    return new Pixel(
-//      Math.floor((a.r + b.r) / 2),
-//      Math.floor((a.g + b.g) / 2),
-//      Math.floor((a.b + b.b) / 2)
-//    );
-
     var pixel = new Pixel(0, 0, 0);
-    pixel.r = a.r;
+    pixel.r = Math.random() > 0.5 ? a.r : b.r;
     pixel.g = Math.random() > 0.5 ? a.g : b.g;
-    pixel.b = b.b;
+    pixel.b = Math.random() > 0.5 ? a.b : b.b;
 
     return pixel;
   };
 
   Pixel.prototype.mix = function(rate) {
-    if (Math.random() <= rate) {
-      this.r = (this.r + randInt(0, 10)) % 255;
-    }
-    if (Math.random() <= rate) {
-      this.g = (this.g + randInt(0, 10)) % 255;
-    }
-    if (Math.random() <= rate) {
-      this.b = (this.b + randInt(0, 10)) % 255;
+    if (Math.random() < rate) {
+      const channels = ['r', 'g', 'b'];
+      this[channels[randInt(0, 2)]] = randInt(0, 255);
     }
 
     return this;
@@ -137,39 +146,32 @@
 
     var radius = kernel / 2;
     var angle = 2 * Math.PI;
+    totalMatches = 0;
 
     for (let i = 0, len = population.length; i < len; i++) {
-      var pixel = population[i][0];
+      var dna = population[i][0];
       var x = i % rowWidth;
       var y = Math.floor(i / rowWidth);
-      ctx.fillStyle = pixel.gene.toString();
+      ctx.fillStyle = dna.gene.toString();
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
       ctx.closePath();
       ctx.fill();
+
+      if (dna.fitness === 3) {
+        totalMatches++;
+      }
+
+      if (dna.fitness > baseFitness) {
+        baseFitness = dna.fitness;
+      }
+
     }
 
     debug_generationCount.textContent = `Generation: ${generation} `;
     debug_minScore.textContent = `Base fitness: ${baseFitness} `;
-    debug_mutationRate.textContent = `Mutationrate: ${MUTATION_RATE} `;
-  }
-
-  function renderTarget() {
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, 10, 10);
-
-    var radius = kernel / 2;
-    var angle = 2 * Math.PI;
-
-    for (let i = 0, len = dataTarget.length; i < len; i++) {
-      var x = i % rowWidth;
-      var y = Math.floor(i / rowWidth);
-      ctx.fillStyle = dataTarget[i].toString();
-      ctx.beginPath();
-      ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
-      ctx.closePath();
-      ctx.fill();
-    }
+    debug_mutationRate.textContent = `Mutation rate: ${MUTATION_RATE} `;
+    debug_totalMatches.textContent = `Matches: ${Number(totalMatches / (dataTarget.length * 3) * 100).toFixed(0)} `;
   }
 
   function randInt(min, max) {
@@ -232,19 +234,20 @@
     population = population.map((pixelRow, i) => {
       // Calculate everyone's fitness + keep track of total fitness (so it can be normalized)
       var totalFitness = 0;
-      var fitnesses = [];
+      const poolSorted = [];
+      const pool = [];
 
       pixelRow.forEach(dna => {
         var fitness = dna.gene.diff(dataTarget[i]);
-        fitnesses.push(fitness);
+        dna.fitness = fitness;
         totalFitness += fitness;
       });
 
-      pixelRow.forEach((dna, n) => {
-        dna.fitness = fitnesses[fitnesses.length - n - 1] / totalFitness;
+      pixelRow.forEach((dna, i) => {
+        poolSorted.push({ i, fitness: totalFitness > 0 ? dna.fitness / totalFitness : 0 });
       });
 
-      pixelRow.sort((a, b) => {
+      poolSorted.sort((a, b) => {
         if (a.fitness > b.fitness) {
           return -1;
         }
@@ -257,34 +260,58 @@
       });
 
       // Selection
-      const pool = [];
-      pixelRow.forEach((dna, n) => {
-        if (dna.fitness < 0.0001) {
-          return;
-        }
-        for (var p = 0, len = Math.floor(dna.fitness * 100) || 100; p < len; p++) {
-          pool.push(n);
+      poolSorted.forEach(obj => {
+        for (var p = 0, len = Math.floor(obj.fitness * 100); p < len; p++) {
+          pool.push(obj.i);
         }
       });
 
-      if (i === 0) {
-        baseFitness = pixelRow[0].fitness;
-//        console.log(`${generation}:${pixelRow[0].fitness}`)
-//        console.log(pixelRow[0])
-        console.log({ pool, pixelRow })
+      if (pool.length === 0) {
+        pixelRow.forEach((dna, i) => {
+          pool.push(i);
+        });
       }
 
-      return pixelRow.map(() => {
+      if (i === 0) {
+//        console.log(`${generation}:${pixelRow[0].fitness}`)
+//        console.log(pixelRow[0])
+        console.log({ target: dataTarget[i], pool, pixelRow, totalFitness, poolSorted })
+      }
+
+      const next = pixelRow.map(() => {
         let randA = pool[randInt(0, pool.length - 1)];
         let randB = pool[randInt(0, pool.length - 1)];
         const parentA = pixelRow[randA];
         const parentB = pixelRow[randB];
         if (!parentA || !parentB) {
-          console.log('BOOM', { parentA, parentB, randA, randB, pool, pixelRow })
+          console.log('BOOM', { parentA, parentB, randA, randB, pool, pixelRow, totalFitness })
         }
-        return new DNA(Pixel.avg(parentA.gene, parentB.gene).mix(MUTATION_RATE));
+        const dna = new DNA(Pixel.avg(parentA.gene, parentB.gene).mix(MUTATION_RATE));
+        dna.fitness = dna.gene.diff(dataTarget[i]);
+        return dna;
 //        return new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255)));
       });
+
+      next.sort((a, b) => {
+        if (a.fitness > b.fitness) {
+          return -1;
+        }
+
+        if (a.fitness > b.fitness) {
+          return 1;
+        }
+
+        return 0;
+      });
+
+
+      if (generation % 5 === 0 && generation > 0 && next.length < MAX_POPULATION_SIZE) {
+        for (let i = 0; i < populationGrowthRate; i++) {
+          next.push(new DNA(new Pixel(0, 0, 0)));
+        }
+      }
+
+      return next;
     });
 
     render();
@@ -303,6 +330,7 @@
     body.appendChild(debug_generationCount);
     body.appendChild(debug_minScore);
     body.appendChild(debug_mutationRate);
+    body.appendChild(debug_totalMatches);
 
     imgTarget.addEventListener('load', start);
     imgTarget.setAttribute('src', '/gen-art/happy-sm.jpg');
