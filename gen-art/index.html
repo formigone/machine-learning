@@ -67,18 +67,15 @@
   var debug_totalMatches = el('p', {}, '');
 
   var MAX_WIDTH = 80;
-  var MAX_POPULATIONS = 5;
-  var MAX_POPULATION_SIZE = 30;
+  var MAX_POPULATIONS = 50;
   var MAX_CYCLES = 1000;
-  var MUTATION_RATE = 0.1;
+  var MUTATION_RATE = 0.01;
   var generation = 0;
   var baseFitness = 0;
   var population = [];
   var dataTarget = [];
   var kernel = 1;
   var rowWidth = 0;
-  var populationGrowthRate = 10;
-  var populationGrowthRateCycle = 25;
   let totalMatches = 0;
 
   function DNA(gene) {
@@ -95,27 +92,29 @@
   Pixel.prototype.diff = function (pixel) {
     return ['r', 'g', 'b'].reduce((acc, channel) => {
       const diff = Math.abs(this[channel] - pixel[channel]);
-      if (diff === 0) {
-        return acc + 100;
-      }
-
-      if (diff < 10) {
-        return acc + 25;
-      }
-
-      if (diff < 20) {
-        return acc + 10;
-      }
-
-      if (diff < 30) {
-        return acc + 5;
-      }
-
-      if (diff < 40) {
-        return acc + 1;
-      }
-
-      return acc;
+      return acc + Math.max(0, 100 - diff);
+//
+//      if (diff === 0) {
+//        return acc + 100;
+//      }
+//
+//      else if (diff < 10) {
+//        return acc + 20;
+//      }
+//
+//      else if (diff < 20) {
+//        return acc + 10;
+//      }
+//
+//      else if (diff < 30) {
+//        return acc + 5;
+//      }
+//
+//      else if (diff < 40) {
+//        return acc + 1;
+//      }
+//
+//      return acc;
     }, 0);
   };
 
@@ -130,12 +129,16 @@
 
   Pixel.prototype.mix = function(rate) {
     if (Math.random() < rate) {
-      this.r = randInt(0, 255);
-      this.g = randInt(0, 255);
-      this.b = randInt(0, 255);
+      var channels = ['r', 'g', 'b'];
+      var channel = randInt(0, 2);
+      this[channels[channel]] = randInt(0, 255);
     }
 
     return this;
+  };
+
+  Pixel.prototype.asRGBA = function (alpha) {
+    return `rgba(${this.r}, ${this.g}, ${this.b}, ${alpha})`;
   };
 
   Pixel.prototype.toString = function () {
@@ -155,6 +158,8 @@
       var x = i % rowWidth;
       var y = Math.floor(i / rowWidth);
       ctx.fillStyle = dna.gene.toString();
+      dna._prevFitness = dna.fitness;
+
       ctx.beginPath();
       ctx.arc(x * kernel + radius, y * kernel + radius, radius, 0, angle);
       ctx.closePath();
@@ -230,11 +235,17 @@
 
     ctx = canvas.getContext('2d');
     render();
-    setTimeout(nextGeneration, 100);
+    setTimeout(nextGeneration, 0);
   }
 
   function nextGeneration() {
     population = population.map((pixelRow, i) => {
+//      if (generation % populationGrowthRateCycle === 0 && generation > 0 && pixelRow.length < MAX_POPULATION_SIZE) {
+//        for (let i = 0; i < populationGrowthRate; i++) {
+//          pixelRow.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
+//        }
+//      }
+
       // Calculate everyone's fitness + keep track of total fitness (so it can be normalized)
       var totalFitness = 0;
       const poolSorted = [];
@@ -278,17 +289,17 @@
       if (i === 0) {
 //        console.log(`${generation}:${pixelRow[0].fitness}`)
 //        console.log(pixelRow[0])
-        console.log({ target: dataTarget[i], pool, pixelRow, totalFitness, poolSorted })
+//        console.log({ target: dataTarget[i], pool, pixelRow, totalFitness, poolSorted })
       }
 
       const next = pixelRow.map(() => {
         let randA = pool[randInt(0, pool.length - 1)];
         let randB = pool[randInt(0, pool.length - 1)];
+        if (generation < 10) {
+          randB = pool[randInt(Math.floor(pool.length / 2), pool.length - 1)];
+        }
         const parentA = pixelRow[randA];
         const parentB = pixelRow[randB];
-        if (!parentA || !parentB) {
-          console.log('BOOM', { parentA, parentB, randA, randB, pool, pixelRow, totalFitness })
-        }
         const dna = new DNA(Pixel.avg(parentA.gene, parentB.gene).mix(MUTATION_RATE));
         dna.fitness = dna.gene.diff(dataTarget[i]);
         return dna;
@@ -307,20 +318,13 @@
         return 0;
       });
 
-
-      if (generation % populationGrowthRateCycle === 0 && generation > 0 && next.length < MAX_POPULATION_SIZE) {
-        for (let i = 0; i < populationGrowthRate; i++) {
-          next.push(new DNA(new Pixel(0, 0, 0)));
-        }
-      }
-
       return next;
     });
 
     render();
     generation += 1;
     if (generation < MAX_CYCLES) {
-      setTimeout(nextGeneration, 100);
+      setTimeout(nextGeneration, 0);
     }
   }
 
