@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+<head>
+  <title>DOM Height Map</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      background: #000;
+    }
+
+    .map {
+      width: 100%;
+      height: 100%;
+      perspective: 99999px;
+      perspective-origin: center;
+      transition: all 1s ease-in-out;
+    }
+
+    .block {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.5);
+      transition: all 1s;
+      position: absolute;
+      /*transform: rotateX(45deg);*/
+    }
+
+    .block.block__rotate {
+      transform: translateX(-50%) translateY(-50%) rotateX(45deg);
+    }
+
+    .block__center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+    }
+  </style>
+<body>
+<div class="map" id="map"></div>
+
+<script>
+  var blocks = [];
+
+  for (var i = 0; i < 15; i++) {
+    blocks.push({
+      x: i * 100 - 100,
+      y: 300,
+      z: 0,
+      a: 10,
+    })
+  }
+
+  for (var i = 0; i < 15; i++) {
+    blocks.push({
+      x: i * 100 - 100,
+      y: 300,
+      z: 100,
+      a: 10,
+    })
+  }
+
+  for (var i = 0; i < 15; i++) {
+    blocks.push({
+      x: i * 100 - 100,
+      y: 300,
+      z: 200,
+      a: 10,
+    })
+  }
+
+  for (var i = 0; i < 15; i++) {
+    blocks.push({
+      x: i * 100 - 100,
+      y: 300,
+      z: 300,
+      a: 10,
+    })
+  }
+
+  function onClick(element, block) {
+//    var classes = event.target.classList;
+//    if (classes.contains('block__rotate')) {
+//      classes.remove('block__rotate');
+//    } else {
+//      classes.add('block__rotate');
+//    }
+    block.y += 100;
+    element.style.top = `${block.y}px`;
+  }
+
+  function doit() {
+    requestAnimationFrame(doit);
+
+    Array.from(document.querySelectorAll('.block')).forEach((element, i) => {
+      var block = blocks[i];
+      block.a = (block.a + 1) % 360;
+      block.y += (i + 10) * 2.5;
+      if (block.y > 500) {
+        block.y = -10;
+      }
+      block.x = Math.sin(i) * block.y;
+      block.z += i * 0.5;
+      if (block.z > 800) {
+        block.z = -1500;
+      }
+      element.style.left = `${block.x}px`;
+      element.style.top = `${block.y}px`;
+      element.style.transform = `rotate3d(1, 0, 0, ${block.a}deg) translateY(${block.z}px) translateX(${block.y}px)`;
+    });
+  }
+
+  blocks.forEach((block) => {
+    var element = document.createElement('div');
+    element.className = 'block';
+    element.style.left = `${block.x}px`;
+    element.style.top = `${block.y}px`;
+    element.style.transform = `rotate3d(1, 0, 0, 45deg) translateY(${block.z}px) translateX(${block.y}px)`;
+    document.getElementById('map').appendChild(element);
+
+    element.addEventListener('click', () => onClick(element, block));
+  });
+
+  setTimeout(() => {
+    document.querySelector('.map').style.perspective = '500px';
+
+    setTimeout(() => {
+      doit();
+    }, 3000);
+  }, 100);
+</script>
+</body>
+</html>
