@@ -20,161 +20,151 @@
 <script src="DOM.js"></script>
 <script src="math.js"></script>
 <script src="/shared/web/js/three.js"></script>
+<script src="/shared/web/js/PointerLockControls.js"></script>
+<script src="/shared/web/js/noise.js"></script>
 <script>
-  var MAX_WIDTH = 20;
-  var MAX_POPULATIONS = 10;
+  var WORLD_WIDTH = 150;
+  var WORLD_LENGTH = 150;
+  var WORLD_BLOCK_DIMENSION = {
+    width: 100,
+    height: 100,
+    length: 100,
+  };
+  var MOVE_BY = 25;
 
-  var renderer, scene, camera, objs = [];
+  var scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x2196f3, 5, WORLD_LENGTH * WORLD_BLOCK_DIMENSION.length / 1.5);
+  var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+  var renderer = new THREE.WebGLRenderer();
+  var map = [];
 
-  function render(pixels, width) {
-    var container = document.getElementById('container');
-    container.style.height = Math.floor(container.offsetWidth * (9/16)) + 'px';
-    console.log(container.offsetWidth, container.offsetHeight)
-    renderer = new THREE.WebGLRenderer();
-    camera =
-      new THREE.PerspectiveCamera(
-        45,
-        container.offsetWidth / container.offsetHeight,
-        0.1,
-        10000,
-      );
+  scene.background = new THREE.Color(0x2196f3);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-    scene = new THREE.Scene();
+  genLight().forEach(light => scene.add(light));
+  var world = new THREE.Group();
+  var objs = genWorld();
+  objs.forEach(obj => world.add(obj));
+  scene.add(world);
 
-// Add the camera to the scene.
-    scene.add(camera);
+  var maxHeight = map.reduce((acc, height) => (height > acc ? height : acc), 1);
+  camera.position.set(WORLD_WIDTH / 2 * WORLD_BLOCK_DIMENSION.width, maxHeight * WORLD_BLOCK_DIMENSION.height / 2, WORLD_LENGTH / 2 * WORLD_BLOCK_DIMENSION.length);
 
-// Start the renderer.
-    renderer.setSize(container.offsetWidth, container.offsetHeight);
+  function genLight() {
+    var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1);
+    hemiLight.color.setHSL(0.6, 1, 0.6);
+    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    hemiLight.position.set(0, 500, 0);
 
-// Attach the renderer-supplied
-// DOM element.
-    container.appendChild(renderer.domElement);
+    var dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.color.setHSL(0.1, 1, 0.95);
+    dirLight.position.set(-1, 1.75, 1);
+    dirLight.position.multiplyScalar(50);
 
+    return [hemiLight, dirLight];
+  }
 
-    // create a point light
-    const pointLight =
-      new THREE.PointLight(0xFFFFFF);
+  function genWorld() {
+    map = [];
+    var noise = new Noise(Math.random());
 
-// set its position
-    pointLight.position.x = 10;
-    pointLight.position.y = 50;
-    pointLight.position.z = 130;
-
-// add to the scene
-    scene.add(pointLight);
-
-
-
-
-    const RADIUS = 1;
-    const SEGMENTS = 3;
-    const RINGS = 3;
-    const sphereMaterial =
-      new THREE.MeshLambertMaterial(
-        {
-          color: 0xCC0000
-        });
-
-    for (var i = 0; i < 1000; i++) {
-      const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(
-          RADIUS,
-          SEGMENTS,
-          RINGS),
-        sphereMaterial);
-      sphere.position.x = i * RADIUS * 2;
-      sphere.position.y = i * RADIUS;
-      sphere.position.z = -20;
-      objs.push(sphere);
-      scene.add(sphere);
+    for (let x = 0; x < WORLD_WIDTH; x++) {
+      for (let z = 0; z < WORLD_LENGTH; z++) {
+        var value = noise.simplex2(x / 80, z / 80);
+        var height = Math.max(2, Math.floor(value * 25));
+        map.push(height);
+      }
     }
 
-    renderer.render(scene, camera);
-    requestAnimationFrame(update);
-  }
+    var geometry = new THREE.BoxGeometry(WORLD_BLOCK_DIMENSION.width, WORLD_BLOCK_DIMENSION.length, WORLD_BLOCK_DIMENSION.height);
+    var material = new THREE.MeshPhongMaterial({ color: 0x4caf50 });
 
-  function update () {
-    objs.forEach((obj, i) => {
-      obj.rotation.x += 0.05;
-      obj.position.y = Math.min(Math.sin(obj.position.x), 5);
-      obj.position.x -= 0.1;
-      if (obj.position.x < -100) {
-        obj.position.x = 100;
-      }
-    });
-    renderer.render(scene, camera);
-    requestAnimationFrame(update);
-  }
+    var group = [];
+    for (let i = 0; i < map.length; i++) {
+      var x = (i % WORLD_WIDTH) * WORLD_BLOCK_DIMENSION.width;
+      var z = Math.floor(i / WORLD_WIDTH) * WORLD_BLOCK_DIMENSION.length;
+      var height = map[i];
 
-  function genRandomPopulation(dataSize, populationSize) {
-    var population = [];
-    for (var p = 0; p < dataSize; p++) {
-      var row = [];
-      for (var i = 0; i < populationSize; i++) {
-        row.push(new DNA(new Pixel(randInt(0, 255), randInt(0, 255), randInt(0, 255))));
-      }
-      population.push(row);
-    }
+      var addAllLayers = false;
+      var cube = new THREE.Mesh(geometry, material);
 
-    return population;
-  }
-
-  function start(e) {
-    var img = e.target;
-    var canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    var ctx = canvas.getContext('2d');
-
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var kernel = Math.floor(data.width / MAX_WIDTH);
-    var rowWidth = 0;
-    var dataTarget = [];
-
-    PixelList.takeRows(data.data, data.width * 4, (row, y) => {
-      if (y % kernel === 0) {
-        rowWidth = 0;
-        for (let i = 0, len = row.length; i < len; i += 1) {
-          if (i % kernel === 0) {
-            const pixel = new Pixel(row[i][0], row[i][1], row[i][2]);
-            dataTarget.push(pixel);
-            rowWidth += 1;
-          }
+      if (addAllLayers) {
+        for (let j = 1; j <= height; j++) {
+          var y = WORLD_BLOCK_DIMENSION.height * j;
+          cube.position.set(x, y, z);
+          group.push(cube);
         }
+      } else {
+        var y = WORLD_BLOCK_DIMENSION.height * height;
+        cube.position.set(x, y, z);
+        group.push(cube);
+      }
+    }
+
+    return group;
+  }
+
+  var keys = {};
+  document.body.addEventListener('keydown', (e) => {
+    keys[e.keyCode] = true;
+  });
+
+  document.body.addEventListener('keyup', (e) => {
+    keys[e.keyCode] = false;
+  });
+
+  function render() {
+    requestAnimationFrame(render);
+
+    var direction = camera.getWorldDirection();
+
+    if (keys[37]) {
+      camera.rotation.y += 0.01;
+    } else if (keys[39]) {
+      camera.rotation.y -= 0.01;
+    }
+
+    if (keys[38]) {
+      camera.position.add(direction.multiplyScalar(MOVE_BY));
+    } else if (keys[40]) {
+      camera.position.add(direction.multiplyScalar(-MOVE_BY));
+    }
+
+    // D => down
+    if (keys[68]) {
+      camera.position.y -= MOVE_BY;
+    } else if (keys[32]) {
+      camera.position.y += MOVE_BY;
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  render();
+
+  function testMap() {
+    var width = 3;
+    var length = 3;
+    var map = [
+      1, 1, 1,
+      1, 2, 1,
+      1, 1, 1,
+    ];
+
+    var group = [];
+
+    map.forEach((height, i) => {
+      var x = (i % width);
+      var z = Math.floor(i / length);
+
+      for (let j = 0; j < height; j++) {
+        group.push(`[${x}, ${j}, ${z}]`);
       }
     });
 
-    var population = genRandomPopulation(dataTarget.length, MAX_POPULATIONS);
-    var worker = new Worker('worker.js');
-    worker.addEventListener('message', (event) => {
-      var data = event.data;
-      var action = data.action || '';
-      switch (action) {
-        case 'render':
-          render(data.pixels, data.width);
-          break;
-        case 'error':
-          console.error(data.message, data);
-          break;
-        default:
-          worker.postMessage({ action: 'error', message: 'Action not implemented', data: event.data });
-      }
-    });
-
-    worker.postMessage({ action: 'bounce', width: rowWidth, pixels: dataTarget });
+    return group;
   }
-
-  function init() {
-    document.body.appendChild(el('div', { id: 'container' }, 'Loading...'));
-    var img = document.createElement('img');
-    img.addEventListener('load', start);
-    img.setAttribute('src', '/gen-art/happy-sm.jpg');
-  }
-
-  init();
 </script>
 </body>
 </html>
