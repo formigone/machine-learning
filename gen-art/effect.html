@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+<head>
+  <title>Genetic Algorithm Art</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  var VIEWPORT = initViewport();
+  var ROWS = 100;
+  var COLS = 100;
+
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+
+  document.body.appendChild(canvas);
+
+  var pixels = [];
+
+  for (var y = 0; y < COLS; y++) {
+    for (var x = 0; x < ROWS; x++) {
+      var vel = Math.max(Math.random(), 0.05);
+      pixels.push({
+        val: `[${x}, ${y}]`,
+        pos: {
+          x: x,
+          y: y,
+        },
+        vel: {
+          x: vel,
+          y: vel,
+        },
+        color: `#${Number(Math.random() * 0xffffff | 0).toString(16)}`,
+      });
+    }
+  }
+
+  function render() {
+    pixels.forEach((pixel, i) => {
+      var width = VIEWPORT.width / COLS;
+      var height = VIEWPORT.height / ROWS;
+
+      ctx.fillStyle = pixel.color;
+      ctx.fillRect(pixel.pos.x * width, pixel.pos.y * height, width, height);
+
+      if (pixel.transition) {
+        pixel.tmp.width += pixel.vel.x;
+        pixel.tmp.height += pixel.vel.y;
+
+        if (pixel.tmp.width >= width) {
+          pixel.tmp.width = width;
+          pixel.tmp.height = height;
+          pixel.transition = false;
+          pixel.color = pixel.mix;
+        }
+
+        ctx.fillStyle = pixel.mix;
+        ctx.fillRect(pixel.pos.x * width, pixel.pos.y * height, pixel.tmp.width | 0, pixel.tmp.height | 0);
+      }
+    });
+  }
+
+  var input = {
+    keys: {},
+    click: false,
+  };
+
+  function update() {
+    pixels.forEach((pixel, i) => {
+      if (!pixel.transition) {
+        pixel.tmp = { width: 0, height: 0 };
+        pixel.mix = pixels[i === 0 ? pixels.length - 1 : Math.max(0, i - 1)].color;
+        pixel.transition = true;
+      }
+    });
+    input.click = false;
+  }
+
+  function loop() {
+    if (!paused) {
+      requestAnimationFrame(loop);
+    }
+
+    update();
+    render();
+  }
+
+  function init() {
+    VIEWPORT = initViewport();
+    canvas.width = VIEWPORT.width;
+    canvas.height = VIEWPORT.height;
+
+    ctx = canvas.getContext('2d');
+    pixels._finished = 0;
+
+    loop();
+  }
+
+  function initViewport() {
+    return {
+      width: document.body.offsetWidth,
+      height: document.body.offsetHeight,
+    };
+  }
+
+  var paused = false;
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(init, 1000);
+  });
+
+  document.body.addEventListener('keydown', () => {
+    paused = true;
+  });
+
+  document.body.addEventListener('keyup', () => {
+    paused = false;
+    loop();
+  });
+
+  document.body.addEventListener('click', () => {
+    input.click = true;
+  });
+
+  init();
+</script>
+</body>
+</html>
