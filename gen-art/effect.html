@@ -12,11 +12,11 @@
   </style>
 </head>
 <body>
-
 <script>
   var VIEWPORT = initViewport();
   var ROWS = 100;
   var COLS = 100;
+  var worker = new Worker('worker.js');
 
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
@@ -25,28 +25,10 @@
 
   var pixels = [];
 
-  for (var y = 0; y < COLS; y++) {
-    for (var x = 0; x < ROWS; x++) {
-      var vel = Math.max(Math.random(), 0.05);
-      pixels.push({
-        val: `[${x}, ${y}]`,
-        pos: {
-          x: x,
-          y: y,
-        },
-        vel: {
-          x: vel,
-          y: vel,
-        },
-        color: `#${Number(Math.random() * 0xffffff | 0).toString(16)}`,
-      });
-    }
-  }
-
   function render() {
-    pixels.forEach((pixel, i) => {
-      var width = VIEWPORT.width / COLS;
-      var height = VIEWPORT.height / ROWS;
+    pixels.forEach(pixel => {
+      const width = VIEWPORT.width / COLS;
+      const height = VIEWPORT.height / ROWS;
 
       ctx.fillStyle = pixel.color;
       ctx.fillRect(pixel.pos.x * width, pixel.pos.y * height, width, height);
@@ -68,20 +50,21 @@
     });
   }
 
-  var input = {
-    keys: {},
-    click: false,
-  };
-
   function update() {
     pixels.forEach((pixel, i) => {
       if (!pixel.transition) {
         pixel.tmp = { width: 0, height: 0 };
-        pixel.mix = pixels[i === 0 ? pixels.length - 1 : Math.max(0, i - 1)].color;
+        if (pixel.next) {
+          pixel.mix = pixel.next;
+          pixel.next = pixel.mix;
+
+          delete pixel.next;
+        } else {
+          pixel.mix = pixels[i === 0 ? pixels.length - 1 : Math.max(0, i - 1)].color;
+        }
         pixel.transition = true;
       }
     });
-    input.click = false;
   }
 
   function loop() {
@@ -93,13 +76,47 @@
     render();
   }
 
+  worker.addEventListener('message', (event) => {
+    const data = event.data;
+    console.log(`Received: ${data.action}`);
+
+    switch (data.action) {
+      case 'update':
+        pixels = data.pixels;
+        break;
+      case 'error':
+        console.error(data.message, data);
+        break;
+      default:
+        console.error('Invalid action type.', data);
+    }
+  });
+
+  function prepImport() {
+    const img = new Image();
+    img.addEventListener('load', (e) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      worker.postMessage({
+        action: 'takeSome',
+        img: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+        pixels: pixels,
+        imgWidth: img.width,
+        width: COLS,
+      })
+    });
+    img.src = 'happy-sm.jpg';
+  }
+
   function init() {
     VIEWPORT = initViewport();
     canvas.width = VIEWPORT.width;
     canvas.height = VIEWPORT.height;
 
     ctx = canvas.getContext('2d');
-    pixels._finished = 0;
 
     loop();
   }
@@ -113,7 +130,7 @@
 
   var paused = false;
   var resizeTimer;
-  window.addEventListener('resize', function () {
+  window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(init, 1000);
   });
@@ -127,10 +144,8 @@
     loop();
   });
 
-  document.body.addEventListener('click', () => {
-    input.click = true;
-  });
-
+  worker.postMessage({ action: 'random', width: COLS, height: ROWS });
+  setTimeout(prepImport, 2500);
   init();
 </script>
 </body>
