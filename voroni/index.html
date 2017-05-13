@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+  <title>Voroni</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    canvas {
+      /*width: 100%;*/
+      /*height: 100%;*/
+    }
+  </style>
+</head>
+<body>
+<script>
+  var canvas = document.createElement('canvas');
+  canvas.width = window.innerWidth;
+//  canvas.height = window.innerHeight;
+  var ctx = canvas.getContext('2d');
+
+  document.body.appendChild(canvas);
+
+  var points = [];
+  for (var i = 0; i < 15; i++) {
+    points.push({
+      x: Math.random() * canvas.width | 0,
+      y: Math.random() * canvas.height | 0,
+      color: `rgb(${Math.random() * 255 | 0}, ${Math.random() * 155 | 0}, ${Math.random() * 55 | 0})`,
+    })
+  }
+
+  function render(){
+    for (var y = 0; y < canvas.height; y += 4) {
+      for (var x = 0; x < canvas.width; x += 4) {
+        var pt = findClosest(points, x, y);
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(x - 2, y - 2, 4, 4);
+//        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+
+//    ctx.fillStyle = '#000';
+//    points.forEach(function(pt) {
+//      ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+//    });
+  }
+
+  function findClosest(points, x, y) {
+    var distance = Number.MAX_VALUE;
+    var closest = points[0];
+//    console.log('---')
+    points.forEach(function(pt) {
+      var dist = Math.sqrt((x - pt.x) * (x - pt.x) + (y - pt.y) * (y - pt.y));
+//      console.log(i, pt.x, pt.y, x, y, dist);
+      if (dist < distance) {
+        closest = pt;
+        distance = dist;
+      }
+    });
+//console.log('<<', closest.x, closest.y)
+    return closest;
+  }
+
+  var follower;
+  canvas.addEventListener('mousemove', function(e) {
+    var x = e.x;
+    var y = e.y;
+
+    if (!follower) {
+      follower = findClosest(points, x, y);
+    }
+
+    follower.x = x;
+    follower.y = y;
+
+    render();
+  });
+
+  function tick() {
+//    requestAnimationFrame(tick);
+//    points[0].x += 1;
+    render();
+  }
+
+  tick();
+</script>
+</body>
+</html>

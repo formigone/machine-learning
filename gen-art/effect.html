@@ -9,9 +9,56 @@
       padding: 0;
       margin: 0;
     }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+
+    .stats-box {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 100;
+      height: 100vh;
+      background: #fff;
+    }
+
+    .toggle-stats-box {
+      padding: 10px;
+    }
+
+    .stats-box.stats__off {
+      background: transparent;
+      height: auto;
+    }
+
+    .stats {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .stats li {
+      padding: 20px 20px 0;
+    }
+
+    .stats__off .stats li {
+      display: none;
+    }
   </style>
 </head>
 <body>
+<div id="statsBox" class="stats-box stats__off">
+  <button id="toggleStats" class="toggle-stats-box">X</button>
+  <ul class="stats">
+    <li>Generation: <span id="stat-generation"></span></li>
+    <li>Population: <span id="stat-population"></span></li>
+    <li>Running duration: <span id="stat-duration"></span></li>
+  </ul>
+</div>
 <script>
   var VIEWPORT = initViewport();
   var ROWS = 100;
@@ -20,6 +67,18 @@
 
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
+  var statGeneration = document.getElementById('stat-generation');
+  var statPopulation = document.getElementById('stat-population');
+  var statDuration = document.getElementById('stat-duration');
+
+  var generation = 0;
+  var population = 50;
+  var start = {
+    timestamp: Date.now(),
+    hour: 0,
+    min: 0,
+    sec: 0,
+  };
 
   document.body.appendChild(canvas);
 
@@ -48,6 +107,10 @@
         ctx.fillRect(pixel.pos.x * width, pixel.pos.y * height, pixel.tmp.width | 0, pixel.tmp.height | 0);
       }
     });
+
+    statGeneration.textContent = generation;
+    statPopulation.textContent = population;
+    statDuration.textContent = `${`00${start.hour}`.slice(-2)}:${`00${start.min}`.slice(-2)}:${`00${start.sec}`.slice(-2)}`
   }
 
   function update() {
@@ -56,8 +119,6 @@
         pixel.tmp = { width: 0, height: 0 };
         if (pixel.next) {
           pixel.mix = pixel.next;
-          pixel.next = pixel.mix;
-
           delete pixel.next;
         } else {
           pixel.mix = pixels[i === 0 ? pixels.length - 1 : Math.max(0, i - 1)].color;
@@ -65,6 +126,11 @@
         pixel.transition = true;
       }
     });
+
+    var timeDiff = Date.now() - start.timestamp;
+    start.sec = Math.round(timeDiff / 1000) % 60;
+    start.min = Math.round(((timeDiff % 86400000) % 3600000) / 60000);
+    start.hour = Math.floor((timeDiff % 86400000) / 3600000);
   }
 
   function loop() {
@@ -102,6 +168,7 @@
       ctx.drawImage(img, 0, 0);
       worker.postMessage({
         action: 'takeSome',
+        population: population,
         img: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
         pixels: pixels,
         imgWidth: img.width,
@@ -145,8 +212,13 @@
   });
 
   worker.postMessage({ action: 'random', width: COLS, height: ROWS });
-  setTimeout(prepImport, 2500);
+  setTimeout(prepImport, 1000);
   init();
+
+  const statsBox = document.getElementById('statsBox');
+  document.getElementById('toggleStats').addEventListener('click', function() {
+    statsBox.classList.toggle('stats__off');
+  });
 </script>
 </body>
 </html>

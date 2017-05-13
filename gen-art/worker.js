@@ -1,5 +1,9 @@
 self.importScripts('Pixel.js');
 
+var target = [];
+var population = [];
+var generation = 0;
+
 function onMessage(event) {
   var data = event.data;
   var action = data.action || '';
@@ -13,8 +17,9 @@ function onMessage(event) {
     case 'takeSome':
       postMessage({
         action: 'update',
-        pixels: takeSome(data.pixels, data.img, data.width, data.imgWidth),
+        pixels: takeSome(data.pixels, data.img, data.width, data.imgWidth, data.population || 1),
       });
+      run();
       break;
 
     case 'bounce':
@@ -26,6 +31,18 @@ function onMessage(event) {
     default:
       postMessage({ action: 'error', message: 'Action not implemented', data: event.data });
   }
+}
+
+function run() {
+  console.log('Generation', generation);
+  target.forEach((pixel, i) => {
+    if (generation === 0) {
+    console.log('cycle', { pixel, i, pop: population[0] });
+    generation++;
+    }
+    population.forEach(pop => {
+    });
+  });
 }
 
 self.addEventListener('message', onMessage);
@@ -53,9 +70,21 @@ function genRandomPixels(width, height) {
   return pixels;
 }
 
-function takeSome(pixels, img, width, imgWidth) {
+function genGene() {
+  return {
+    r: Math.random() * 255 | 0,
+    g: Math.random() * 255 | 0,
+    b: Math.random() * 255 | 0,
+  };
+}
+
+function takeSome(pixels, img, width, imgWidth, populationSize) {
   const kernel = Math.floor(imgWidth / width);
   let current = 0;
+
+  for (let i = 0; i < populationSize; i++) {
+    population.push({ fitness: 0, pixels: [] });
+  }
 
   PixelList.takeRows(img, imgWidth * 4, (row, y) => {
     if (y % kernel === 0) {
@@ -63,8 +92,12 @@ function takeSome(pixels, img, width, imgWidth) {
         if (i % kernel === 0) {
           if (pixels[current]) {
             const rgb = [row[i][0], row[i][1], row[i][2]];
-            pixels.rgb = rgb;
-            pixels[current++].next = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            target.push(rgb);
+            population.forEach(pop => {
+              pop.pixels.push(genGene());
+            });
+
+            pixels[current++].next = `rgb(${population[0].r}, ${population[0].g}, ${population[0].b})`;
           }
         }
       }
