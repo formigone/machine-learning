@@ -24,7 +24,7 @@
   points._angleFrom = 0;
   points._angleTo = 2 * Math.PI;
 
-  function Point(x, y, radius, angleDeg, speed) {
+  function Point(x, y, radius, angleDeg, speed, bounce) {
     this.x = x;
     this.y = y;
     this.r = radius;
@@ -32,11 +32,39 @@
     this.angleRad = angleDeg * Math.PI / 180;
     this.dx = speed * Math.cos(this.angleRad);
     this.dy = -speed * Math.sin(this.angleRad);
+    this.bounce = bounce;
   }
 
   Point.prototype.update = function(){
     this.x += this.dx;
     this.y += this.dy;
+
+//    this.angleRad += 0.03;
+//    this.dx = this.speed * Math.cos(this.angleRad);
+//    this.dy = -this.speed * Math.sin(this.angleRad);
+
+    if (this.bounce) {
+      const diff = 0.05;
+      if (this.x < WIDTH * 0.25) {
+        this.dx += diff;
+      }
+
+      if (this.y < HEIGHT * 0.25) {
+        this.dy += diff;
+      }
+
+      if (this.x > WIDTH * 0.75) {
+        this.dx -= diff;
+      }
+
+      if (this.y > HEIGHT * 0.75) {
+        this.dy -= diff;
+      }
+    }
+  };
+
+  Point.len = (pt) => {
+    return Math.sqrt(pt.x * pt.x + pt.y * pt.y);
   };
 
   Point.genRandom = (x, y) => {
@@ -45,20 +73,14 @@
       y || Math.random() * HEIGHT,
       Math.random() * 5 + 3,
       Math.random() * 360 + 1,
-      Math.random() * 5 + 3);
+      Math.random() * 1 + 3,
+      true
+    );
   };
 
   function update() {
     points.forEach(pt => {
       pt.update();
-//      pt.x += pt.dx;
-//      pt.y += pt.dy;
-//      if (pt.x < 0 || pt.x > WIDTH) {
-//        pt.dx *= -1;
-//      }
-//      if (pt.y < 0 || pt.y > HEIGHT) {
-//        pt.dy *= -1;
-//      }
     });
   }
 
@@ -70,6 +92,10 @@
     points.forEach(pt => {
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, pt.r, points._angleFrom, points._angleTo);
+      ctx.moveTo(pt.x - pt.r + 1, pt.y - pt.r + 1);
+      ctx.lineTo(pt.x - pt.dx * 15, pt.y - pt.dy * 15);
+      ctx.moveTo(pt.x + pt.r - 1, pt.y + pt.r - 1);
+      ctx.lineTo(pt.x - pt.dx * 15, pt.y - pt.dy * 15);
       ctx.stroke();
     });
   }
@@ -80,10 +106,23 @@
     render();
   }
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 50; i++) {
     points.push(Point.genRandom(WIDTH / 2, HEIGHT / 2));
   }
   document.body.appendChild(canvas);
+  canvas.addEventListener('click', (e) => {
+    points.forEach(pt => {
+      const angle = Math.atan2(e.y - pt.y, e.x - pt.x);
+      pt.angleRad = angle * Math.PI / 180;
+      pt.dx = pt.speed * Math.cos(angle);
+      pt.dy = -pt.speed * Math.sin(angle);
+
+//      pt.x = e.x;
+//      pt.y = e.y;
+//      pt.dx *= -1;
+//      pt.dy *= -1;
+    });
+  });
   tick();
 </script>
 </body>
