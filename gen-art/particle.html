@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <title>Particle effect</title>
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+<script>
+  const WIDTH = document.body.clientWidth;
+  const HEIGHT = document.body.clientHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  const ctx = canvas.getContext('2d');
+
+  const points = [];
+  points._angleFrom = 0;
+  points._angleTo = 2 * Math.PI;
+
+  function Point(x, y, radius, angleDeg, speed) {
+    this.x = x;
+    this.y = y;
+    this.r = radius;
+    this.speed = speed;
+    this.angleRad = angleDeg * Math.PI / 180;
+    this.dx = speed * Math.cos(this.angleRad);
+    this.dy = -speed * Math.sin(this.angleRad);
+  }
+
+  Point.prototype.update = function(){
+    this.x += this.dx;
+    this.y += this.dy;
+  };
+
+  Point.genRandom = (x, y) => {
+    return new Point(
+      x || Math.random() * WIDTH,
+      y || Math.random() * HEIGHT,
+      Math.random() * 5 + 3,
+      Math.random() * 360 + 1,
+      Math.random() * 5 + 3);
+  };
+
+  function update() {
+    points.forEach(pt => {
+      pt.update();
+//      pt.x += pt.dx;
+//      pt.y += pt.dy;
+//      if (pt.x < 0 || pt.x > WIDTH) {
+//        pt.dx *= -1;
+//      }
+//      if (pt.y < 0 || pt.y > HEIGHT) {
+//        pt.dy *= -1;
+//      }
+    });
+  }
+
+  function render() {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.strokeStyle = '#000';
+    points.forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.r, points._angleFrom, points._angleTo);
+      ctx.stroke();
+    });
+  }
+
+  function tick() {
+    requestAnimationFrame(tick);
+    update();
+    render();
+  }
+
+  for (let i = 0; i < 10; i++) {
+    points.push(Point.genRandom(WIDTH / 2, HEIGHT / 2));
+  }
+  document.body.appendChild(canvas);
+  tick();
+</script>
+</body>
+</html>
