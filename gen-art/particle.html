@@ -12,9 +12,73 @@
   </style>
 </head>
 <body>
+<script src="/shared/web/js/D2.js"></script>
 <script>
   const WIDTH = document.body.clientWidth;
   const HEIGHT = document.body.clientHeight;
+
+  function Obj(x, y){
+    this.x = x;
+    this.y = y;
+    this.r = 10;
+    this.dx = 1;
+    this.dy = 1;
+    this.children = [];
+  }
+
+  Obj.prototype.move = function() {
+    this.x += this.dx;
+    this.y += this.dy;
+    this.children.forEach(child => {
+      child.x = this.x + child.dx;
+      child.y = this.y + child.dy;
+    })
+  };
+
+  Obj.prototype.render = function(ctx) {
+    ctx.fillRect(this.x, this.y, this.r, this.r);
+  };
+
+  Obj.prototype.renderChildren = function(ctx) {
+    this.children.forEach(obj => {
+      obj.render(ctx);
+    });
+  };
+
+  const objs = [];
+  objs.push(new Obj(WIDTH / 2, HEIGHT / 2));
+  objs[0].children.push(new Obj(10, 10));
+  objs[0].children[0].dx = 5;
+  objs[0].children[0].dy = 0;
+
+  const d2 = new D2(WIDTH, HEIGHT, document.body);
+
+  d2.onUpdate(() => {
+    objs.forEach(obj => {
+      obj.move();
+      obj.children.forEach(child => {
+        child.move();
+//        if (child.x - obj.x > 25) {
+//          child.dx *= -1;
+//        }
+      });
+    });
+  });
+
+  d2.onRender(ctx => {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.fillStyle = '#333';
+    objs.forEach(obj => {
+      obj.render(ctx);
+      ctx.fillStyle = '#700';
+      obj.renderChildren(ctx);
+    });
+  });
+
+  d2.run();
+/*
   const canvas = document.createElement('canvas');
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -124,6 +188,7 @@
     });
   });
   tick();
+  */
 </script>
 </body>
 </html>
