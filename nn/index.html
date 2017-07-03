@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+<script>
+  function makeArray(size, opt) {
+    var arr = [];
+    opt = opt || {};
+    for (var i = 0; i < size; i++) {
+      if (opt.value) {
+        arr.push(value);
+      } else if (opt.cb) {
+        arr.push(opt.cb(i));
+      } else {
+        arr.push(Math.random());
+      }
+    }
+
+    return arr;
+  }
+
+  var activators = {
+    ReLU: function(x) {
+      return Math.max(0, x);
+    },
+    Softmax: function(x) {
+      return 1 / (1 + Math.pow(Math.E, -x));
+    },
+  };
+
+  /**
+   *
+   * @param {number} inputs
+   * @constructor
+   */
+  function Neuron(inputs) {
+    this.weights = makeArray(inputs);
+    this.bias = Math.random();
+  }
+
+  /**
+   *
+   * @param {Array} inputs
+   * @param {Function} activation
+   */
+  Neuron.prototype.run = function(inputs, activation) {
+    if (inputs.length !== this.weights.length) {
+      throw new Error('Size of inputs and and weights vector must match');
+    }
+
+    var weights = this.weights;
+    var sum = inputs.reduce(function(acc, input, i) {
+      return acc + input * weights[i];
+    }, 0);
+
+    return activation(sum + this.bias);
+  };
+
+  /**
+   *
+   * @param {Array<number>} layersConfig List of integers, where list element indicates layer number, and value is amount of nodes in it. Example [3, 4, 5, 6] makes input layer with 3 nodes, output layer with 6 nodes, and two hidden layers with 4 and 5 nodes respectively.
+   * @constructor
+   */
+  function Net(layersConfig) {
+    this.layers = layersConfig.map(function(size, i) {
+      if (i === 0) {
+        return;
+      }
+
+      var inputs = layersConfig[i - 1];
+      return makeArray(size, { cb: function(){ return new Neuron(inputs); } });
+    });
+
+    this.layers.shift();
+
+    this.hiddenActivator = layersConfig.hiddenActivator || activators.ReLU;
+    this.outputActivator = layersConfig.outputActivator || activators.Softmax;
+  }
+
+  Net.prototype._forward = function(inputs, i) {
+    i = i || 0;
+    if (i >= this.layers.length) {
+      return inputs;
+    }
+
+    var layer = this.layers[i];
+    if (layer[0].weights.length !== inputs.length) {
+      throw new Error('Input size mismatch during forward prop step at layer #' + i);
+    }
+
+    var outputLayer = i === this.layers.length - 1;
+    var activation = outputLayer ? this.outputActivator : this.hiddenActivator;
+    var output = layer.map(function(neuron) {
+      return neuron.run(inputs, activation);
+    });
+
+    return this._forward(output, i + 1);
+  };
+</script>
+</body>
+</html>

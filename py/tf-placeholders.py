@@ -8,7 +8,7 @@ x = tf.placeholder(tf.int64)
 m = tf.placeholder(tf.int64)
 b = tf.placeholder(tf.int64)
 
-slope = tf.mul(m, x)
+slope = tf.multiply(m, x)
 intercept = tf.add(slope, b)
 
 sess = tf.Session()

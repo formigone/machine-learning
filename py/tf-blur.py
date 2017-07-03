@@ -1,70 +1,11 @@
-import scipy.misc
 import tensorflow as tf
+import scipy.misc
 
-def render():
-    path = 'img-02.jpg'
-    # mat(4, 7, 3)
-    img = scipy.misc.imread(path, mode='RGB')
+img = tf.image.decode_jpeg('./img-03.jpg', channels=3)
+# res_img = tf.image.resize_images(img, [32, 32])
 
-    h, w, c = img.shape
-
-    for y in range(0, h):
-       for x in range(0, w):
-           r, g, b = img[y][x]
-           img[y][x] = [r, g, b]
-
-    scipy.misc.toimage(img).show()
-
-img = [
-    [
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-    ],
-    [
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-    ],
-    [
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-    ],
-    [
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-        [255, 0, 0],
-        [255, 255, 255],
-    ],
-]
-
-filter = [
-    [1/16, 1/8, 1/16],
-    [1/8,  1/4, 1/8],
-    [1/16, 1/8, 1/16],
-]
-
-img = scipy.misc.toimage(img)
-scipy.misc.imsave('img-01.png', img)
-# tf_img = tf.image.decode_image())
-# kernel = tf.constant([img], shape=[1, 4, 7, 3])
-# with tf.Session() as sess:
-#     res = kernel.eval()
-#     print(res)
-    # scipy.misc.toimage(img).show()
+with tf.Session() as sess:
+    # tf.global_variables_initializer()
+   print('running res_img')
+   res = scipy.misc.toimage(sess.run(img.eval()))
+   scipy.misc.imsave('img-04.jpg', res)

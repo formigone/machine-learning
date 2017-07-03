@@ -8,7 +8,7 @@ x = tf.Variable(0)
 m = tf.Variable(0)
 b = tf.Variable(0)
 
-slope = tf.mul(m, x)
+slope = tf.multiply(m, x)
 intercept = tf.add(slope, b)
 
 sess = tf.Session()
