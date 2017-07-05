@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <title>Linear Regression</title>
+  <style>
+    body {
+      background: #eee;
+    }
+
+    canvas {
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+<script src="LinearRegressionModel.js"></script>
+<script>
+  // DUH! Linear Regression is not a classification problem. What I tried to solve was a classification problem (is point type 1|0).
+  //      However, using linear regression is not the tool for such a task.
+  //
+  function genCanvas(width, height) {
+    var canvas = document.createElement('canvas');
+    if (width > 0) {
+      canvas.width = width;
+    }
+
+    if (height > 0) {
+      canvas.height = height;
+    }
+
+    return canvas;
+  }
+
+  function Line(m, b, color) {
+    this.m = m;
+    this.b = b;
+    this.color = color || '#000';
+  }
+
+  Line.prototype.getY = function(x) {
+    return this.m * x + this.b;
+  };
+
+  Line.prototype.getX = function(y) {
+    // y = mx + b
+    // x = (y - b) / m
+    return (y - this.b) / this.m;
+  };
+
+  Line.prototype.draw = function(canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - this.b);
+    ctx.lineTo(canvas.width, canvas.height - this.getY(canvas.width));
+    ctx.strokeStyle = this.color;
+    ctx.stroke();
+  };
+
+  Line.rand = function() {
+    return new Line(Math.random(), Math.random());
+  };
+
+  function Point(x, y, type, width, height, color) {
+    this.x = x;
+    this.y = y;
+    this.type = type || 0;
+    this.width = width || 5;
+    this.height = height || 5;
+    this.color = color || '#cc12c3';
+  }
+
+  Point.prototype.draw = function(canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, canvas.height - this.y, this.width, this.height);
+  };
+
+  /**
+   *
+   * @param {Line} target
+   * @param {Array<Point>} points
+   * @param {LinearRegressionModel} model
+   * @param {HTMLCanvasElement} canvas
+   */
+  function step(target, points, model, canvas) {
+    var modelLine = new Line(model.params[0], model.params[1], '#cc0');
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    modelLine.draw(canvas);
+    target.draw(canvas);
+    points.forEach(point => {
+      point.draw(canvas);
+    });
+  }
+
+
+  // -----------------------
+  // -----------------------
+
+
+  function main() {
+    var canvas = genCanvas(window.innerWidth, window.innerHeight / 3);
+    var target = new Line(Math.random() - Math.random(), canvas.height / 2);
+    document.body.appendChild(canvas);
+
+    console.log('Target', target);
+
+    var points = [];
+    for (var i = 0; i < 100; i++) {
+      var point = new Point(Math.random() * canvas.width, Math.random() * canvas.height, 0, 8, 8);
+      if (target.getY(point.x) >= point.y) {
+        point.type = 1;
+        point.color = '#5e5bcc';
+      }
+
+      points.push(point);
+    }
+
+    var model = new LinearRegressionModel();
+
+    step(target, points, model, canvas);
+  }
+
+  main();
+</script>
+</body>
+</html>

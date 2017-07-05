@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "brain": "^0.7.0",
+    "console.table": "^0.8.0",
     "fann-lite": "^2015.8.1",
     "machine_learning": "^0.1.1",
     "synaptic": "^1.0.8",
