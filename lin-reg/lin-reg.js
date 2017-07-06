@@ -1,4 +1,5 @@
 require('console.table');
+var { genArray } = require('./arrayHelper');
 
 const LinearRegressionModel = require('./LinearRegressionModel');
 
@@ -18,19 +19,6 @@ function shuffle(array) {
   }
 
   return array;
-}
-
-function genArray(size, value) {
-  var arr = [];
-  for (var i = 0; i < size; i++) {
-    if (value instanceof Function) {
-      arr.push(value(arr, i));
-    } else {
-      arr.push(value);
-    }
-  }
-
-  return arr;
 }
 
 /**
@@ -88,14 +76,28 @@ function splitTrainingTest(data, percentageInTraining, shuffleData) {
 
 
 function main() {
-  var data = genPriceData([1, 2, 3, 4], 10);
+  var data = genPriceData([1, 2, 3, 4], 1000);
+  /**
+   * @type {Array<Array<number>>} xTrain
+   * @type {Array<Array<number>>} xTest
+   * @type {Array<Array<number>>} yTrain
+   * @type {Array<Array<number>>} yTest
+   */
   [xTrain, xTest, yTrain, yTest] = splitTrainingTest(data, 0.7, true);
 
   // console.table('Data', data);
   // console.table('xTrain', xTrain);
   // console.table('yTrain', yTrain);
-  // console.table('xTest', xTest);
-  // console.table('yTest', yTest);
+  console.table('xTest', xTest.slice(0, 5));
+  console.table('yTest', yTest.slice(0, 5));
+
+  var linearModel = new LinearRegressionModel(xTrain[0].length);
+  console.table('Model parameters', linearModel.params);
+
+  linearModel.train(xTrain, yTrain, 0.005, 100);
+
+  var score = linearModel.score([0, 5, 0, 0]);
+  console.table('Score', [score]);
 }
 
 main();
