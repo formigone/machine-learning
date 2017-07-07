@@ -22,19 +22,21 @@ function LinearRegressionModel(numFeatures) {
  *
  * @param {Array<Array<number>>} samples List of samples
  * @param {Array<Array<number>>} labels List of vectors
- * @param {Object} config - { learningRate, maxCost, epochs, logCost }
+ * @param {Object} config - { learningRate, maxCost, epochs, logCost, logCallback }
  */
 LinearRegressionModel.prototype.train = function (samples, labels, config) {
   var maxEpochs = config.epochs || 10;
+  var epoch = 0;
   var maxCost = config.maxCost || 0.05;
   var learningRate = config.learningRate || 0.05;
   var logCost = config.logCost || 100;
+  var logCallback = config.logCallback || function(){};
   var M = samples.length;
 
   // Add zeroth bias input
   samples = samples.map(sample => [1].concat(sample));
 
-  while(maxEpochs--) {
+  while(epoch++ < maxEpochs) {
     var scores = samples.map(sample => this.score(sample, true));
     var errorSquared = scores.reduce((acc, score, i) => {
       var diff = score - labels[i][0];
@@ -49,8 +51,8 @@ LinearRegressionModel.prototype.train = function (samples, labels, config) {
       break;
     }
 
-    if (logCost > 0 && maxEpochs % logCost === 0) {
-      console.log('cost', cost);
+    if (logCost > 0 && epoch % logCost === 0) {
+      logCallback({ model: this, cost, epoch });
     }
 
     var errors = scores.map((score, i) => score - labels[i][0]);
@@ -85,7 +87,7 @@ LinearRegressionModel.prototype.score = function (inputs, includeBias) {
  *
  * @returm {Array<number>}
  */
-LinearRegressionModel.prototype.save = function () {
+LinearRegressionModel.prototype.getParams = function () {
   return this.params;
 };
 
@@ -93,7 +95,7 @@ LinearRegressionModel.prototype.save = function () {
  *
  * @param {Array<number>} params
  */
-LinearRegressionModel.prototype.restore = function (params) {
+LinearRegressionModel.prototype.setParams = function (params) {
   if (params.length !== this.params.length) {
     throw new Error(`Parameters size mismatch. Your list of parameters must have length of ${this.params.length}`);
   }
