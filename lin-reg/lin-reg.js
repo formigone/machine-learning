@@ -76,7 +76,9 @@ function splitTrainingTest(data, percentageInTraining, shuffleData) {
 
 
 function main() {
-  var data = genPriceData([1, 2, 3, 4], 1000);
+  var prices = genArray(25, (arr, i) => i + 1);
+  var data = genPriceData(prices, 150);
+
   /**
    * @type {Array<Array<number>>} xTrain
    * @type {Array<Array<number>>} xTest
@@ -85,19 +87,42 @@ function main() {
    */
   [xTrain, xTest, yTrain, yTest] = splitTrainingTest(data, 0.7, true);
 
-  // console.table('Data', data);
-  // console.table('xTrain', xTrain);
-  // console.table('yTrain', yTrain);
+  console.table('Prices', [prices]);
   console.table('xTest', xTest.slice(0, 5));
   console.table('yTest', yTest.slice(0, 5));
 
   var linearModel = new LinearRegressionModel(xTrain[0].length);
   console.table('Model parameters', linearModel.params);
 
-  linearModel.train(xTrain, yTrain, 0.005, 100);
+  linearModel.train(xTrain, yTrain, { learningRate: 0.0001, maxCost: 0.00000001, epochs: 125000, logCost: 1000 });
 
-  var score = linearModel.score([0, 5, 0, 0]);
-  console.table('Score', [score]);
+  // var sampleToScore = genArray(25, 0);
+  // sampleToScore[5] = 2;
+  // console.table('To input', [sampleToScore]);
+  // console.table('Expected', Number([prices[5] * sampleToScore[5]]).toFixed(2));
+  //
+  // var score = linearModel.score(sampleToScore);
+  // console.table('Score', [Number(score).toFixed(2)]);
+
+  var totalCorrect = 0;
+  var totalWrong = 0;
+  var totalPredictions = 0;
+  xTest.forEach((sample, i) => {
+    var prediction = Number(linearModel.score(sample)).toFixed(2);
+    var expected = String(yTest[i]);
+    if (expected.match(/\.\d$/)) {
+      expected += '0';
+    }
+    totalPredictions += 1;
+    if (prediction != expected) {
+      console.table('Prediction', [{ i: i, expected: yTest[i], actual: prediction }]);
+      totalWrong += 1;
+    } else {
+      totalCorrect += 1;
+    }
+  });
+
+  console.table('Accuracy', [{ total: totalPredictions, correct: totalCorrect, wrong: totalWrong }])
 }
 
 main();

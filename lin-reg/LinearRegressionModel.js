@@ -22,54 +22,83 @@ function LinearRegressionModel(numFeatures) {
  *
  * @param {Array<Array<number>>} samples List of samples
  * @param {Array<Array<number>>} labels List of vectors
- * @param {number} learningRate
- * @param {number} maxEpochs
+ * @param {Object} config - { learningRate, maxCost, epochs, logCost }
  */
-LinearRegressionModel.prototype.train = function (samples, labels, learningRate, maxEpochs) {
-  maxEpochs = maxEpochs || 10;
+LinearRegressionModel.prototype.train = function (samples, labels, config) {
+  var maxEpochs = config.epochs || 10;
+  var maxCost = config.maxCost || 0.05;
+  var learningRate = config.learningRate || 0.05;
+  var logCost = config.logCost || 100;
+  var M = samples.length;
+
+  // Add zeroth bias input
+  samples = samples.map(sample => [1].concat(sample));
 
   while(maxEpochs--) {
-    var scores = samples.map(sample => this.score(sample));
-    var M = samples.length;
-    var alpha = learningRate * (1 / M);
-    var cost = 1 / (2 * M) * scores.reduce((acc, score, i) => {
-        var diff = score - labels[i][0];
-        return acc + diff * diff;
-      }, 0);
+    var scores = samples.map(sample => this.score(sample, true));
+    var errorSquared = scores.reduce((acc, score, i) => {
+      var diff = score - labels[i][0];
+      return acc + diff * diff;
+    }, 0);
+    var cost = 1 / (2 * M) * errorSquared;
+    if (Number.isNaN(cost)) {
+      throw new Error('Cost exploded');
+    }
 
-    console.log('cost', cost);
+    if (cost < maxCost) {
+      break;
+    }
 
-    // Gradient descent
-    this.params = this.params.map((param, i) => {
-      // TODO: fix with https://wikimedia.org/api/rest_v1/media/math/render/svg/1287a455b42c47dadf958a42cc4164c38abfbfd0
-      var sum = samples.reduce((acc, sample, row) => {
-        var diff = scores[row] - labels[row][0];
-        var sum = sample.reduce((acc, x) => {
-          return acc + diff * x;
-        }, diff);
-        return acc + sum;
-      }, 0);
+    if (logCost > 0 && maxEpochs % logCost === 0) {
+      console.log('cost', cost);
+    }
 
-      var newParam = param - alpha * sum;
-      // console.log(`Gradient descent ${10 - maxEpochs}/${i}: ${param} - ${alpha} * ${sum} == ${newParam}`)
-      return newParam;
+    var errors = scores.map((score, i) => score - labels[i][0]);
+    this.params = this.params.map((param, col) => {
+      return param - learningRate * errors.reduce((acc, error, row) => {
+        return acc + error * samples[row][col];
+        }, 0);
     });
-    // console.log('---')
   }
 };
 
 /**
  *
  * @param {Array<number>} inputs
+ * @param {boolean=} includeBias
  */
-LinearRegressionModel.prototype.score = function (inputs) {
-  if (inputs.length !== this.params.length - 1) {
-    throw new Error(`Input size mismatch. Your input must have length of ${this.params.length - 1}`);
+LinearRegressionModel.prototype.score = function (inputs, includeBias) {
+  if (!includeBias) {
+    inputs = [1].concat(inputs);
+  }
+
+  if (inputs.length !== this.params.length) {
+    throw new Error(`Input size mismatch. Your input must have length of ${this.params.length}`);
   }
 
   return inputs.reduce((acc, input, i) => {
     return acc + input * this.params[i];
-  }, this.params[0]);
+  }, 0);
+};
+
+/**
+ *
+ * @returm {Array<number>}
+ */
+LinearRegressionModel.prototype.save = function () {
+  return this.params;
+};
+
+/**
+ *
+ * @param {Array<number>} params
+ */
+LinearRegressionModel.prototype.restore = function (params) {
+  if (params.length !== this.params.length) {
+    throw new Error(`Parameters size mismatch. Your list of parameters must have length of ${this.params.length}`);
+  }
+
+  this.params = params;
 };
 
 if (typeof module !== 'undefined' && module.exports) {
