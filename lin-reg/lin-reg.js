@@ -95,11 +95,11 @@ function train(data, linearModel, logCallback) {
   console.table('xTest', xTest.slice(0, 5));
   console.table('yTest', yTest.slice(0, 5));
 
-  console.table('Model parameters', linearModel.params);
+  console.log('Model parameters', JSON.stringify(linearModel.params, null, 2));
 
   linearModel.train(xTrain, yTrain, {
-    learningRate: 0.0000003,
-    maxCost: 0.000001,
+    learningRate: 0.000001,
+    maxCost: 0.0000001,
     epochs: 2500000,
     logCost: 1000,
     logCallback: logCallback
@@ -118,10 +118,7 @@ function train(data, linearModel, logCallback) {
   var totalPredictions = 0;
   xTest.forEach((sample, i) => {
     var prediction = Number(linearModel.score(sample)).toFixed(2);
-    var expected = String(yTest[i]);
-    if (expected.match(/\.\d$/)) {
-      expected += '0';
-    }
+    var expected = Number(yTest[i]).toFixed(2);
     totalPredictions += 1;
     if (prediction != expected) {
       console.table('Prediction', [{ i: i, expected: yTest[i], actual: prediction }]);
@@ -131,42 +128,65 @@ function train(data, linearModel, logCallback) {
     }
   });
 
-  console.table('Accuracy', [{ total: totalPredictions, correct: totalCorrect, wrong: totalWrong }])
+  console.table('Accuracy', [{ total: totalPredictions, correct: totalCorrect, wrong: totalWrong, accuracy: Number(totalCorrect / totalPredictions).toFixed(2) }])
 }
 
 
 function main() {
-  var dataFilename = `${__dirname}/prices-5000.json`;
-  var paramsFilename = `${__dirname}/prices-5000-params.json`;
+  if (process.argv.length < 4) {
+    console.log(`Usage: node ${process.argv[1]} <action> <model-name>`);
+    return;
+  }
 
-  fs.readFile(dataFilename, (err, data) => {
-    data = JSON.parse(data.toString());
-    var linearModel = new LinearRegressionModel(data[0].length - 1);
-    var params = fs.readFileSync(paramsFilename);
-    params = JSON.parse(params);
-    linearModel.setParams(params);
-    var logCallback = function (data) {
-      var cost = data.cost;
-      var params = data.model.getParams();
-      console.log('cost', cost);
-      fs.writeFileSync(paramsFilename, JSON.stringify(params));
-      // console.log(`Saved model parameters (${paramsFilename}, ${params.length})`);
-    };
-    train(data, linearModel, logCallback);
-  });
+  var action = process.argv[2];
+  var modelName = process.argv[3];
+  var dataFilename = `${__dirname}/${modelName}.json`;
+  var paramsFilename = `${__dirname}/${modelName}-params.json`;
 
-  // Generate + persist data
-  // var prices = genArray(20, (arr, i) => i + 1);
-  // var data = genPriceData(prices, 5000);
-  //
-  // fs.writeFile(dataFilename, JSON.stringify(data), (err) => {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //
-  //   console.log('Saved data');
-  //   train(data);
-  // });
+  var validActions = ['generate-data', 'train'];
+  if (validActions.indexOf(action) < 0) {
+    console.error(`Invalid action. Try \n   ${validActions.join('\n   ')}`);
+    return;
+  }
+
+  console.log(new Date());
+  console.log(`Action: ${action}`);
+  console.log(`Model name: ${modelName}`);
+
+  if (action === 'train') {
+    fs.readFile(dataFilename, (err, data) => {
+      data = JSON.parse(data.toString());
+      var linearModel = new LinearRegressionModel(data[0].length - 1);
+      try {
+        var params = fs.readFileSync(paramsFilename);
+        params = JSON.parse(params);
+        linearModel.setParams(params);
+        console.log(`Loaded model parameters from ${dataFilename}`);
+      } catch (err) {
+        console.error(`Error loading exported model parameters from ${dataFilename}`);
+      }
+
+      var logCallback = function (data) {
+        var cost = data.cost;
+        var params = data.model.getParams();
+        fs.writeFileSync(paramsFilename, JSON.stringify(params));
+        console.log(`${new Date()}  cost ${cost}`);
+        // console.log(`Saved model parameters (${paramsFilename}, ${params.length})`);
+      };
+      train(data, linearModel, logCallback);
+    });
+  } else if (action === 'generate-data') {
+    var prices = genArray(20, (arr, i) => i + 1);
+    var data = genPriceData(prices, 25000);
+
+    fs.writeFile(dataFilename, JSON.stringify(data), (err) => {
+      if (err) {
+        throw err;
+      }
+
+      console.log('Saved data');
+    });
+  }
 }
 
 main();
