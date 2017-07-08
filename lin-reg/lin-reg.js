@@ -99,7 +99,7 @@ function train(data, linearModel, logCallback) {
 
   linearModel.train(xTrain, yTrain, {
     learningRate: 0.0000003,
-    maxCost: 0.0000001,
+    maxCost: 0.001,
     epochs: 2500000,
     logCost: 1000,
     logCallback: logCallback
@@ -128,7 +128,7 @@ function train(data, linearModel, logCallback) {
     }
   });
 
-  console.table('Accuracy', [{ total: totalPredictions, correct: totalCorrect, wrong: totalWrong, accuracy: Number(totalCorrect / totalPredictions).toFixed(2) }])
+  console.table('Accuracy', [{ total: totalPredictions, correct: totalCorrect, wrong: totalWrong, accuracy: Number(totalCorrect / totalPredictions).toFixed(4) }])
 }
 
 
