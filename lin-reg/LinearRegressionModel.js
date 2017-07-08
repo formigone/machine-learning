@@ -51,7 +51,7 @@ LinearRegressionModel.prototype.train = function (samples, labels, config) {
       break;
     }
 
-    if (logCost > 0 && epoch % logCost === 0) {
+    if (logCost > 0 && epoch % logCost === 1) {
       logCallback({ model: this, cost, epoch });
     }
 

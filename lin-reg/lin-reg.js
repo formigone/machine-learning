@@ -98,7 +98,7 @@ function train(data, linearModel, logCallback) {
   console.log('Model parameters', JSON.stringify(linearModel.params, null, 2));
 
   linearModel.train(xTrain, yTrain, {
-    learningRate: 0.000001,
+    learningRate: 0.0000003,
     maxCost: 0.0000001,
     epochs: 2500000,
     logCost: 1000,
