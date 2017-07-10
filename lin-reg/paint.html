@@ -55,9 +55,12 @@
 
     var width = canvas.width;
     var height = canvas.height;
+    var maxCost = 0.000001;
+    var learningRate = 0.5;
 
     model.train(xTrain, yTrain, {
-      learningRate: 0.5,
+      maxCost: maxCost,
+      learningRate: learningRate,
       epochs: 10,
       logCost: 0,
       logCallback: function(data) {
@@ -67,31 +70,32 @@
         }
 
         bundle.epoch += 10;
-        if (!bundle.costsTable) {
-          bundle.costs.push([bundle.epoch, data.cost]);
-        }
-        bundle.logEl.textContent = 'Epoch: ' + bundle.epoch + ', Cost: ' + data.cost;
+        bundle.costs.push([bundle.epoch, data.cost]);
+        bundle.logEl.textContent = 'Epoch: ' + bundle.epoch + ', Cost: ' + data.cost + ', Learning Rate: ' + learningRate;
         console.log('paint', data.epoch, data.cost);
-        xTrain.forEach(function(ptVec, i) {
+        xTrain.forEach(function(ptVec) {
           var pt = ptVecToPt(ptVec, canvas.width);
           var pred = model.score(ptToVec(pt[0], pt[1], width, height));
-          ctx.fillStyle = intToRgb(pred[i]);
+          ctx.fillStyle = intToRgb(pred);
           ctx.fillRect(pt[0], pt[1], 1, 1);
-//      ctx.fillStyle = intToRgb(yTrain[i][0]);
-//      var pt = ptVecToPt(ptVec, canvas.width);
-//      ctx.fillRect(pt[0], pt[1], 1, 1);
-        });
+         });
 
         if (chartsReady) {
           if (!bundle.costsTable) {
             bundle.costs.unshift(['Epoch', 'Cost']);
             bundle.costsTable = google.visualization.arrayToDataTable(bundle.costs);
 
-            var container = document.createElement('div');
-            document.body.appendChild(container);
-            bundle.chart = new google.visualization.LineChart(container);
+            bundle.chartContainer = document.createElement('div');
+            document.body.appendChild(bundle.chartContainer);
+            bundle.chart = new google.visualization.LineChart(bundle.chartContainer);
           } else {
             bundle.costsTable.addRows([[bundle.epoch, data.cost]]);
+          }
+
+          if (bundle.epoch % 1000 === 0) {
+            bundle.costs = [['Epoch', 'Cost']].concat(bundle.costs.slice(-10));
+            bundle.costsTable = google.visualization.arrayToDataTable(bundle.costs);
+            bundle.chart = new google.visualization.LineChart(bundle.chartContainer);
           }
 
           bundle.chart.draw(bundle.costsTable, { curveType: 'function' });
@@ -99,13 +103,13 @@
       },
     });
 
-    requestAnimationFrame(function(){
-      document.body.style.background = '#ccc';
+    if (bundle.costs[bundle.costs.length - 1][1] > maxCost) {
       setTimeout(function(){
-        document.body.style.background = '#fff';
         draw(canvas, ctx, model, xTrain, yTrain, bundle);
-      }, 100);
-    });
+      }, 10);
+    } else {
+      console.log('Done');
+    }
   }
 
 
@@ -121,7 +125,7 @@
       var ctxOriginal = canvasOriginal.getContext('2d');
       ctxOriginal.drawImage(this, 0, 0);
       var imgData = ctxOriginal.getImageData(0, 0, canvasOriginal.width, canvasOriginal.height);
-      ctxOriginal.fillRect(0, 0, this.width, this.height);
+//      ctxOriginal.fillRect(0, 0, this.width, this.height);
       document.body.appendChild(canvasOriginal);
 
       var canvas = genCanvas(this.width, this.height);

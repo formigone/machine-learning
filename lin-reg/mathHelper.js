@@ -16,6 +16,7 @@ function genArray(size, value) {
  * @param {number} rgb
  */
 function intToRgb(rgb) {
+  rgb = parseInt(rgb, 10);
   return 'rgb(' + ((rgb >> 16) & 0xFF) + ',' + ((rgb >> 8) & 0xFF) + ',' + (rgb & 0xFF) + ')';
 }
 
