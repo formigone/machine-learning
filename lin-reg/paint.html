@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+  <title>Linear Regression</title>
+  <style>
+    body {
+      background: #eee;
+      padding: 0;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    canvas {
+      background: #fff;
+      width: 50%;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="mathHelper.js"></script>
+<script src="LinearRegressionModel.js"></script>
+<script>
+  var chartsReady = false;
+  function genCanvas(width, height) {
+    var canvas = document.createElement('canvas');
+    if (width > 0) {
+      canvas.width = width;
+    }
+
+    if (height > 0) {
+      canvas.height = height;
+    }
+
+    return canvas;
+  }
+
+  /**
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {LinearRegressionModel} model
+   * @param {Array<Array<number>>} xTrain
+   * @param {Array<Array<number>>} yTrain
+   * @param {Object=} bundle
+   */
+  function draw(canvas, ctx, model, xTrain, yTrain, bundle) {
+    bundle = bundle || { running: true };
+
+    if (!bundle.logEl) {
+      bundle.logEl = document.createElement('p');
+      document.body.appendChild(bundle.logEl);
+    }
+
+    var width = canvas.width;
+    var height = canvas.height;
+
+    model.train(xTrain, yTrain, {
+      learningRate: 0.5,
+      epochs: 10,
+      logCost: 0,
+      logCallback: function(data) {
+        if (!bundle.epoch) {
+          bundle.epoch = 0;
+          bundle.costs = [];
+        }
+
+        bundle.epoch += 10;
+        if (!bundle.costsTable) {
+          bundle.costs.push([bundle.epoch, data.cost]);
+        }
+        bundle.logEl.textContent = 'Epoch: ' + bundle.epoch + ', Cost: ' + data.cost;
+        console.log('paint', data.epoch, data.cost);
+        xTrain.forEach(function(ptVec, i) {
+          var pt = ptVecToPt(ptVec, canvas.width);
+          var pred = model.score(ptToVec(pt[0], pt[1], width, height));
+          ctx.fillStyle = intToRgb(pred[i]);
+          ctx.fillRect(pt[0], pt[1], 1, 1);
+//      ctx.fillStyle = intToRgb(yTrain[i][0]);
+//      var pt = ptVecToPt(ptVec, canvas.width);
+//      ctx.fillRect(pt[0], pt[1], 1, 1);
+        });
+
+        if (chartsReady) {
+          if (!bundle.costsTable) {
+            bundle.costs.unshift(['Epoch', 'Cost']);
+            bundle.costsTable = google.visualization.arrayToDataTable(bundle.costs);
+
+            var container = document.createElement('div');
+            document.body.appendChild(container);
+            bundle.chart = new google.visualization.LineChart(container);
+          } else {
+            bundle.costsTable.addRows([[bundle.epoch, data.cost]]);
+          }
+
+          bundle.chart.draw(bundle.costsTable, { curveType: 'function' });
+        }
+      },
+    });
+
+    requestAnimationFrame(function(){
+      document.body.style.background = '#ccc';
+      setTimeout(function(){
+        document.body.style.background = '#fff';
+        draw(canvas, ctx, model, xTrain, yTrain, bundle);
+      }, 100);
+    });
+  }
+
+
+
+  // -----------------------
+  // -----------------------
+
+
+  function main() {
+    var img = new Image();
+    img.addEventListener('load', function(e){
+      var canvasOriginal = genCanvas(this.width, this.height);
+      var ctxOriginal = canvasOriginal.getContext('2d');
+      ctxOriginal.drawImage(this, 0, 0);
+      var imgData = ctxOriginal.getImageData(0, 0, canvasOriginal.width, canvasOriginal.height);
+      ctxOriginal.fillRect(0, 0, this.width, this.height);
+      document.body.appendChild(canvasOriginal);
+
+      var canvas = genCanvas(this.width, this.height);
+      var ctx = canvas.getContext('2d');
+
+      var model = new LinearRegressionModel(this.width * this.height);
+      var xTrain = [];
+      var yTrain = [];
+
+      for (var y = 0, i = 0, pixels = imgData.data; y < imgData.height; y++) {
+        for (var x = 0; x < imgData.width; x++) {
+          i = y * 4 * imgData.width + x * 4;
+          xTrain.push(ptToVec(x, y, this.width, this.height));
+          yTrain.push([rgbToInt(pixels[i], pixels[i + 1], pixels[i + 2])]);
+        }
+      }
+
+      document.body.appendChild(canvas);
+      setTimeout(function(){
+        draw(canvas, ctx, model, xTrain, yTrain);
+      }, 0);
+    });
+    img.src = 'img-32x32.gif';
+
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(function(){
+      chartsReady = true;
+    });
+  }
+
+  main();
+</script>
+</body>
+</html>

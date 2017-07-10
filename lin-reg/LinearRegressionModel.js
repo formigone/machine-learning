@@ -1,4 +1,6 @@
-var { genArray } = require('./arrayHelper');
+if (typeof module !== 'undefined' && module.exports) {
+  var genArray = require('./mathHelper').genArray;
+}
 
 function LinearRegressionModel(numFeatures) {
   // Zeroth input will always be a constant bias unit == 1
@@ -22,7 +24,7 @@ function LinearRegressionModel(numFeatures) {
  *
  * @param {Array<Array<number>>} samples List of samples
  * @param {Array<Array<number>>} labels List of vectors
- * @param {Object} config - { learningRate, maxCost, epochs, logCost, logCallback }
+ * @param {Object=} config - { learningRate, maxCost, epochs, logCost, logCallback }
  */
 LinearRegressionModel.prototype.train = function (samples, labels, config) {
   var maxEpochs = config.epochs || 10;
@@ -30,19 +32,22 @@ LinearRegressionModel.prototype.train = function (samples, labels, config) {
   var maxCost = config.maxCost || 0.05;
   var learningRate = config.learningRate || 0.05;
   var logCost = config.logCost || 100;
-  var logCallback = config.logCallback || function(){};
+  var logCallback = config.logCallback || function () {};
   var M = samples.length;
+
+  var lr = learningRate / M;
+  var costFrac = 1 / (2 * M);
 
   // Add zeroth bias input
   samples = samples.map(sample => [1].concat(sample));
 
-  while(epoch++ < maxEpochs) {
+  while (epoch++ < maxEpochs) {
     var scores = samples.map(sample => this.score(sample, true));
-    var errorSquared = scores.reduce((acc, score, i) => {
+    var errorSquared = scores.reduce(function (acc, score, i) {
       var diff = score - labels[i][0];
       return acc + diff * diff;
     }, 0);
-    var cost = 1 / (2 * M) * errorSquared;
+    var cost = costFrac * errorSquared;
     if (Number.isNaN(cost)) {
       throw new Error('Cost exploded');
     }
@@ -56,9 +61,9 @@ LinearRegressionModel.prototype.train = function (samples, labels, config) {
     }
 
     var errors = scores.map((score, i) => score - labels[i][0]);
-    this.params = this.params.map((param, col) => {
-      return param - learningRate * errors.reduce((acc, error, row) => {
-        return acc + error * samples[row][col];
+    this.params = this.params.map(function (param, col) {
+      return param - lr * errors.reduce((acc, error, row) => {
+          return acc + error * samples[row][col];
         }, 0);
     });
   }
@@ -78,8 +83,9 @@ LinearRegressionModel.prototype.score = function (inputs, includeBias) {
     throw new Error(`Input size mismatch. Your input must have length of ${this.params.length}`);
   }
 
-  return inputs.reduce((acc, input, i) => {
-    return acc + input * this.params[i];
+  var params = this.params;
+  return inputs.reduce(function (acc, input, i) {
+    return acc + input * params[i];
   }, 0);
 };
 
