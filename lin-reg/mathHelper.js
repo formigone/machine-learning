@@ -1,4 +1,4 @@
-function genArray(size, value) {
+export function genArray(size, value) {
   var arr = [];
   for (var i = 0; i < size; i++) {
     if (value instanceof Function) {
@@ -15,7 +15,7 @@ function genArray(size, value) {
  *
  * @param {number} rgb
  */
-function intToRgb(rgb) {
+export function intToRgb(rgb) {
   rgb = parseInt(rgb, 10);
   return 'rgb(' + ((rgb >> 16) & 0xFF) + ',' + ((rgb >> 8) & 0xFF) + ',' + (rgb & 0xFF) + ')';
 }
@@ -26,7 +26,7 @@ function intToRgb(rgb) {
  * @param {number} g Integer, base 10 (0-255)
  * @param {number} b Integer, base 10 (0-255)
  */
-function rgbToInt(r, g, b) {
+export function rgbToInt(r, g, b) {
   return parseInt(
     String('0' + Number(r).toString(16)).slice(-2) +
     String('0' + Number(g).toString(16)).slice(-2) +
@@ -43,7 +43,7 @@ function rgbToInt(r, g, b) {
  * @param {number} height
  * @returns {Array<number>}
  */
-function ptToVec(x, y, width, height) {
+export function ptToVec(x, y, width, height) {
   var vec = genArray(width * height, 0);
   var i = (y * width) + x;
   vec[i] = 1;
@@ -56,7 +56,7 @@ function ptToVec(x, y, width, height) {
  * @param {number} width
  * @returns {Array<number>}
  */
-function ptVecToPt(vec, width) {
+export function ptVecToPt(vec, width) {
   var pt = 0;
   vec.some(function(val, i) {
     pt = i;
@@ -71,12 +71,6 @@ function ptVecToPt(vec, width) {
  * @param {number} width
  * @returns {Array<number>}
  */
-function iToPt(i, width) {
+export function iToPt(i, width) {
   return [i % width, parseInt(i / width, 10)];
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    genArray,
-  };
 }

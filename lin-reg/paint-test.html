@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <title>Linear Regression</title>
+  <style>
+    body {
+      background: #eee;
+      padding: 0;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    canvas {
+      background: #fff;
+      width: 50%;
+      image-rendering: pixelated;
+    }
+
+    #painting-app {
+      width: 90%;
+      margin: 50px auto;
+    }
+  </style>
+</head>
+<body>
+
+<div id="painting-app"></div>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="/bundles-out/linear_regression_painting.bundle.js"></script>
+<script>
+  formigone.linear_regression_painting.default(document.getElementById('painting-app'));
+</script>
+</body>
+</html>

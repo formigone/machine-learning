@@ -1,6 +1,4 @@
-if (typeof module !== 'undefined' && module.exports) {
-  var genArray = require('./mathHelper').genArray;
-}
+import { genArray } from './mathHelper';
 
 function LinearRegressionModel(numFeatures) {
   // Zeroth input will always be a constant bias unit == 1
@@ -43,20 +41,21 @@ LinearRegressionModel.prototype.train = function (samples, labels, config) {
 
   while (epoch++ < maxEpochs) {
     var scores = samples.map(sample => this.score(sample, true));
-    var errorSquared = scores.reduce(function (acc, score, i) {
-      var diff = score - labels[i][0];
-      return acc + diff * diff;
-    }, 0);
-    var cost = costFrac * errorSquared;
-    if (Number.isNaN(cost)) {
-      throw new Error('Cost exploded');
-    }
-
-    if (cost < maxCost) {
-      break;
-    }
 
     if (logCost > 0 && epoch % logCost === 1) {
+      var errorSquared = scores.reduce(function (acc, score, i) {
+        var diff = score - labels[i][0];
+        return acc + diff * diff;
+      }, 0);
+      var cost = costFrac * errorSquared;
+      if (Number.isNaN(cost)) {
+        throw new Error('Cost exploded');
+      }
+
+      if (cost < maxCost) {
+        break;
+      }
+
       logCallback({ model: this, cost, epoch });
     }
 
@@ -109,6 +108,4 @@ LinearRegressionModel.prototype.setParams = function (params) {
   this.params = params;
 };
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = LinearRegressionModel;
-}
+export default LinearRegressionModel;

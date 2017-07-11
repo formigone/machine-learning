@@ -61,7 +61,7 @@
     model.train(xTrain, yTrain, {
       maxCost: maxCost,
       learningRate: learningRate,
-      epochs: 10,
+      epochs: 5,
       logCost: 0,
       logCallback: function(data) {
         if (!bundle.epoch) {
@@ -69,10 +69,10 @@
           bundle.costs = [];
         }
 
-        bundle.epoch += 10;
+        bundle.epoch += 50;
         bundle.costs.push([bundle.epoch, data.cost]);
         bundle.logEl.textContent = 'Epoch: ' + bundle.epoch + ', Cost: ' + data.cost + ', Learning Rate: ' + learningRate;
-        console.log('paint', data.epoch, data.cost);
+
         xTrain.forEach(function(ptVec) {
           var pt = ptVecToPt(ptVec, canvas.width);
           var pred = model.score(ptToVec(pt[0], pt[1], width, height));
