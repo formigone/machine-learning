@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <title>Logistic Regression</title>
+  <style>
+    body {
+      background: #eee;
+      padding: 0;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    canvas {
+      background: #fff;
+      width: 100%;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+
+<div id="plot-app"></div>
+<script src="/bundles-out/logistic_regression_plot.bundle.js"></script>
+<script>
+  formigone.logistic_regression_plot.default(document.getElementById('plot-app'));
+</script>
+</body>
+</html>

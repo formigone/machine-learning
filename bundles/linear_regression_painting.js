@@ -2,8 +2,9 @@ import LinearRegressionModel from '../lin-reg/LinearRegressionModel';
 import { ptToVec, rgbToInt, ptVecToPt, intToRgb } from '../lin-reg/mathHelper';
 
 var chartsReady = false;
-function genCanvas(width, height) {
+function genCanvas(width, height, className) {
   var canvas = document.createElement('canvas');
+  canvas.className = className;
   if (width > 0) {
     canvas.width = width;
   }
@@ -80,7 +81,7 @@ function draw(canvas, ctx, model, xTrain, yTrain, bundle) {
     },
   });
 
-  if (bundle.costs[bundle.costs.length - 1][1] > maxCost) {
+  if (bundle.running && bundle.costs[bundle.costs.length - 1][1] > maxCost) {
     setTimeout(function(){
       draw(canvas, ctx, model, xTrain, yTrain, bundle);
     }, 10);
@@ -95,11 +96,17 @@ function draw(canvas, ctx, model, xTrain, yTrain, bundle) {
 // -----------------------
 
 
-function main(container) {
+/**
+ *
+ * @param {string} imgUrl
+ * @param {HTMLElement=} container
+ */
+function main(imgUrl, container) {
   if (! (container instanceof HTMLElement)) {
     container = document.body;
   }
 
+  var bundle = { running: true, container };
   var btn = document.createElement('button');
   btn.textContent = 'Start';
   btn.setAttribute('disabled', 'true');
@@ -108,14 +115,14 @@ function main(container) {
 
   var img = new Image();
   img.addEventListener('load', function(e){
-    var canvasOriginal = genCanvas(this.width, this.height);
+    var canvasOriginal = genCanvas(this.width, this.height, 'lin-reg-canvas');
     var ctxOriginal = canvasOriginal.getContext('2d');
     ctxOriginal.drawImage(this, 0, 0);
     var imgData = ctxOriginal.getImageData(0, 0, canvasOriginal.width, canvasOriginal.height);
 //      ctxOriginal.fillRect(0, 0, this.width, this.height);
     container.appendChild(canvasOriginal);
 
-    var canvas = genCanvas(this.width, this.height);
+    var canvas = genCanvas(this.width, this.height, 'lin-reg-canvas');
     var ctx = canvas.getContext('2d');
 
     var model = new LinearRegressionModel(this.width * this.height);
@@ -133,12 +140,21 @@ function main(container) {
     container.appendChild(canvas);
     btn.removeAttribute('disabled');
     btn.addEventListener('click', function(){
-      btn.style.display = 'none';
-      draw(canvas, ctx, model, xTrain, yTrain, { running: true, container });
+      if (btn.textContent === 'Start') {
+        draw(canvas, ctx, model, xTrain, yTrain, bundle);
+        btn.textContent = 'Pause';
+      } else if (btn.textContent === 'Pause') {
+        bundle.running = false;
+        btn.textContent = 'Continue';
+      } else if (btn.textContent === 'Continue') {
+        bundle.running = true;
+        btn.textContent = 'Pause';
+        draw(canvas, ctx, model, xTrain, yTrain, bundle);
+      }
     });
   });
 
-  img.src = 'samira-28x28.jpg';
+  img.src = imgUrl;
 
   google.charts.load('current', { 'packages': ['corechart'] });
   google.charts.setOnLoadCallback(function(){
