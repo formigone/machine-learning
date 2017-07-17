@@ -86,8 +86,60 @@ describe('NN', () => {
     expect(output[0]).to.equal(a1);
   });
 
-  it('Computes regularization term', () => {
-    const net = new NN([1, 1, 1], { regularization: 1.0 });
+  it('Computes simple regularization term', () => {
+    const lambda = 2;
+    const totalTrainingExamples = 2;
+
+    const net = new NN([2, 4, 1], { regularization: lambda });
+    const W = [
+      [1, 2, 3],
+      [1, 21, 31],
+      [1, 211, 311],
+      [1, 2111, 3111],
+      [1, 4, 5, 6, 7],
+    ];
+    //      Input -----------------------+--------+
+    // Bias --------------------+        |        |
+    //                          |        |        |
+    //                          v        v        v
+    net.layers[0][0].weights = [W[0][0], W[0][1], W[0][2]];
+    net.layers[0][1].weights = [W[1][0], W[1][1], W[1][2]];
+    net.layers[0][2].weights = [W[2][0], W[2][1], W[2][2]];
+    net.layers[0][3].weights = [W[3][0], W[3][1], W[3][2]];
+    net.layers[1][0].weights = [W[4][0], W[4][1], W[4][2], W[4][3], W[4][4]];
+
+    const regu = net._regularize(totalTrainingExamples);
+
+    //  ()  input layer
+    //  ()  => W := [w[0, 0], w[0, 1]]
+    //  ()  => W := [w[1, 0], w[1, 1]]
+    //                    ^
+    //                     `- corresponds to bias term
+
+
+    const expectedRegVal = lambda / (2 * totalTrainingExamples) * (
+      (W[0][1] * W[0][1]) +
+      (W[0][2] * W[0][2]) +
+      (W[1][1] * W[1][1]) +
+      (W[1][2] * W[1][2]) +
+      (W[2][1] * W[2][1]) +
+      (W[2][2] * W[2][2]) +
+      (W[3][1] * W[3][1]) +
+      (W[3][2] * W[3][2]) +
+      (W[4][1] * W[4][1]) +
+      (W[4][2] * W[4][2]) +
+      (W[4][3] * W[4][3]) +
+      (W[4][4] * W[4][4])
+    );
+
+    expect(regu).to.equal(expectedRegVal);
+  });
+
+  it('Computes complex regularization term', () => {
+    const lambda = 2;
+    const totalTrainingExamples = 2;
+
+    const net = new NN([1, 1, 1], { regularization: lambda });
     const W = [
       [1, 2],
       [3, 4],
@@ -99,7 +151,7 @@ describe('NN', () => {
     net.layers[0][0].weights = [W[0][0], W[0][1]];
     net.layers[1][0].weights = [W[1][0], W[1][1]];
 
-    const regu = net._regularize(2);
+    const regu = net._regularize(totalTrainingExamples);
 
     //  ()  input layer
     //  ()  => W := [w[0, 0], w[0, 1]]
@@ -107,8 +159,6 @@ describe('NN', () => {
     //                    ^
     //                     `- corresponds to bias term
 
-    const lambda = 2;
-    const totalTrainingExamples = 2;
 
     const expectedRegVal = lambda / (2 * totalTrainingExamples) * (
       (W[0][1] * W[0][1]) +

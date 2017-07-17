@@ -92,7 +92,13 @@ NN.prototype._cost = function(expected, actual, totalTrainingExamples) {
  */
 NN.prototype._regularize = function (totalTrainingExamples) {
   const coeff = this.regularization / (2 * totalTrainingExamples);
-  throw new Error('TODO: implement regularization term calculation');
+  return coeff * this.layers.reduce((acc, layer) => {
+      return acc + layer.reduce((acc, unit) => {
+          return acc + unit.weights.reduce((acc, weight, i) => {
+              return i === 0 ? 0 : acc + weight * weight;
+            }, 0);
+        }, 0);
+    }, 0);
 };
 
 export default NN;
