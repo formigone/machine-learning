@@ -30,8 +30,23 @@ function NN(layersConfig, settings = {}) {
   this.outputActivator = settings.outputActivator || 'Softmax';
 }
 
+/**
+ *
+ * @param {Array<Array<number>>} samples
+ * @param {Array<Array<number>>} labels
+ * @param {Object} opt [gradientChecking]: function that receives arguments (i, gradient), where i = ith training example, and gradient = calculated gradient direction
+ */
+NN.prototype.train = function(samples, labels, opt = { gradientChecking: false }) {
+  if (samples.length !== labels.length) {
+    throw new Error(`Samples/labels size mismatch during training (${samples.length} samples and ${labels.length} labels)`);
+  }
+
+  const gradientCheckingCb = opt.gradientChecking instanceof Function ? opt.gradientChecking : false;
+
+  throw new Error('TODO: implement training method with option to log partial derivatives');
+};
+
 NN.prototype._forward = function (inputs, l = 0) {
-  // console.log(`Forwarding layer ${l + 1}/${this.layers.length + 1}`);
   if (l >= this.layers.length) {
     return inputs;
   }
@@ -73,12 +88,14 @@ NN.prototype._cost = function(expected, actual, totalTrainingExamples) {
   }
 
   const sum = expected.reduce((acc, el, i) => {
-    const diff = el - actual[i];
-    return acc + diff * diff;
+    return acc + (
+      expected[i] * (Math.log(actual[i]) || 0) + (1 - expected[i]) * (Math.max(0, Math.log(1 - actual[i])) || 0)
+    );
   }, 0);
 
+  const regularization = this._regularize(totalTrainingExamples);
   const coeff = - (1 / totalTrainingExamples);
-  return coeff * sum;
+  return coeff * sum + regularization;
 };
 
 /**

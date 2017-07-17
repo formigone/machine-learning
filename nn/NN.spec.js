@@ -169,6 +169,7 @@ describe('NN', () => {
   });
 
   it('Computes cost J(t)', () => {
+    const totalTrainingExamples = 1;
     const net = new NN([2, 4, 1], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
 
     // 2x2 grid
@@ -181,8 +182,45 @@ describe('NN', () => {
     const inputs = [[0, 0], [2, 2]];
     const labels = [[1], [0]];
 
-    const cost_x0 = net._cost(labels[0], net._forward(inputs[0]), 1);
-    expect(cost_x0).that.is.a('number');
-    // expect(output[0]).to.equal(a1);
+    const coeff = -(1 / totalTrainingExamples);
+
+    let cost = net._cost(labels[0], net._forward(inputs[0]), totalTrainingExamples);
+    let out = net._forward(inputs[0]);
+    let expected = coeff * (
+      labels[0][0] * (Math.log(out[0]) || 0) + (1 - labels[0][0]) * (Math.max(0, Math.log(1 - out[0])) || 0)
+      ) + net._regularize(totalTrainingExamples);
+
+    expect(cost).that.is.a('number');
+    expect(cost).to.equal(expected);
+
+
+    cost = net._cost(labels[1], net._forward(inputs[1]), totalTrainingExamples);
+    out = net._forward(inputs[1]);
+    expected = coeff * (
+      labels[1][0] * (Math.log(out[0]) || 0) + (1 - labels[1][0]) * (Math.max(0, Math.log(1 - out[0])) || 0)
+      ) + net._regularize(totalTrainingExamples);
+
+    expect(cost).that.is.a('number');
+    expect(cost).to.equal(expected);
+  });
+
+  it('Gradient descent decreases close to gradient checking', () => {
+    const net = new NN([2, 4, 1], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
+
+    // 2x2 grid
+    //
+    // 1 | 1 | 1
+    // --+---+--
+    // 1 | 1 | 0
+    // --+---+--
+    // 1 | 0 | 0
+    const inputs = [[0, 0], [2, 2]];
+    const labels = [[1], [0]];
+
+    net.train(inputs, labels, {
+      gradientChecking: function (i, gradient) {
+
+      }
+    });
   });
 });
