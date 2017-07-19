@@ -31,4 +31,22 @@ describe('Neuron', () => {
     expect(Neuron.activators.ReLU(10)).to.equal(10);
     expect(Neuron.activators.ReLU(-10)).to.equal(0);
   });
+
+  it('Remembers the last activated value', () => {
+    const neuron = new Neuron(4);
+    const acts = [];
+
+    acts[0] = neuron.activate([2, 2, 2, 2]);
+    expect(neuron._activated).to.equal(acts[0]);
+
+    acts[1] = neuron.activate([3, 3, 3, 3]);
+    expect(neuron._activated).to.equal(acts[1]);
+
+    acts[2] = neuron.activate([4, 4, 4, 4]);
+    expect(neuron._activated).to.equal(acts[2]);
+
+    expect(acts[0]).to.not.equal(acts[1]);
+    expect(acts[0]).to.not.equal(acts[2]);
+    expect(acts[1]).to.not.equal(acts[2]);
+  });
 });

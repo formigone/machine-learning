@@ -59,11 +59,54 @@ NN.prototype._forward = function (inputs, l = 0) {
   const outputLayer = l === this.layers.length - 1;
   const activator = outputLayer ? this.outputActivator : this.hiddenActivator;
   const output = layer.map((neuron, i) => {
-    // console.log(` Activating a^${l}, ${i} => ${inputs}`);
+    // console.log(` Activating a^(${l}), ${i} => ${inputs}`);
     return neuron.activate(inputs, activator)
   });
 
   return this._forward(output, l + 1);
+};
+
+NN.prototype._vecDelta = function(a, b) {
+  if (a.length !== b.length) {
+    throw new Error(`Input size mismatch while computing vector deltas`);
+  }
+
+  return a.map((vA, i) => vA - b[i]);
+};
+
+NN.prototype._backward = function (deltas, l = null) {
+  if (l < 0) {
+    console.log(` << return from back prop deltas = ${JSON.stringify(deltas)}`);
+    return deltas;
+  }
+
+  if (l === null) {
+    l = this.layers.length - 1;
+  }
+
+  const layer = this.layers[l];
+  console.log(` > back prop: l = ${l}/${this.layers.length}, deltas = ${JSON.stringify(deltas)}, layer<${layer.length}>`);
+  if (layer.length !== deltas.length) {
+    throw new Error(`Input size mismatch during backward prop step at layer #${l}`);
+  }
+
+  // TODO: calculate delta^(l-1) correctly
+  const deltaL_1 = [];
+  const deltaL = layer.map((neuron, i) => {
+    const delta = neuron._activated - deltas[i];
+    console.log(`  > delta^(${l})[${i}] => ${neuron._activated} - ${deltas[i]}`);
+    return neuron.weights.reduce((acc, weight, j) => {
+      const val = weight * delta;
+      if (j > 0) {
+        deltaL_1.push(val);
+      }
+      console.log(`    > delta^(${l})[${i}, ${j}] => ${weight} * ${delta}`);
+      return acc + val;
+    }, 0);
+  });
+
+  console.log(`  < deltaL => ${deltaL}`)
+  return this._backward(deltaL_1, l - 1);
 };
 
 /**
