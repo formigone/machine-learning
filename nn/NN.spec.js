@@ -222,7 +222,7 @@ describe('NN', () => {
     }
   });
 
-  it('Back propagates error', () => {
+  it('Back propagates error <2 : 4 : 1>', () => {
     const net = new NN([2, 4, 1], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
 
     // 2x2 grid
@@ -240,6 +240,27 @@ describe('NN', () => {
 
     const deltaL = net._vecDelta(output, labels[0]);
     net._backward(deltaL);
+  });
+
+  it('Back propagates error <2 : 4 : 4 : 8 : 8 : 2>', () => {
+    const net = new NN([2, 4, 4, 8, 8, 2], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
+
+    // 2x2 grid
+    //
+    // 1 | 1 | 1
+    // --+---+--
+    // 1 | 1 | 0
+    // --+---+--
+    // 1 | 0 | 0
+    const inputs = [[0, 0], [2, 2]];
+    const labels = [[1, 0], [0, 0]];
+
+    const output = net._forward(inputs[0]);
+    expect(output).to.be.an('Array');
+
+    const deltaL = net._vecDelta(output, labels[0]);
+    net._backward(deltaL);
+    // net._backward(deltaL.map(delta => [delta]));
   });
 
   it('Gradient descent decreases close to gradient checking', () => {

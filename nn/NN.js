@@ -1,4 +1,4 @@
-import { genArray } from './math';
+import { genArray, transpose, matMult } from './math';
 import Neuron from './Neuron';
 
 /**
@@ -75,38 +75,31 @@ NN.prototype._vecDelta = function(a, b) {
 };
 
 NN.prototype._backward = function (deltas, l = null) {
-  if (l < 0) {
-    console.log(` << return from back prop deltas = ${JSON.stringify(deltas)}`);
-    return deltas;
-  }
-
   if (l === null) {
     l = this.layers.length - 1;
   }
 
-  const layer = this.layers[l];
-  console.log(` > back prop: l = ${l}/${this.layers.length}, deltas = ${JSON.stringify(deltas)}, layer<${layer.length}>`);
-  if (layer.length !== deltas.length) {
-    throw new Error(`Input size mismatch during backward prop step at layer #${l}`);
+  if (l < 1) {
+    return deltas;
   }
 
-  // TODO: calculate delta^(l-1) correctly
-  const deltaL_1 = [];
-  const deltaL = layer.map((neuron, i) => {
-    const delta = neuron._activated - deltas[i];
-    console.log(`  > delta^(${l})[${i}] => ${neuron._activated} - ${deltas[i]}`);
-    return neuron.weights.reduce((acc, weight, j) => {
-      const val = weight * delta;
-      if (j > 0) {
-        deltaL_1.push(val);
-      }
-      console.log(`    > delta^(${l})[${i}, ${j}] => ${weight} * ${delta}`);
-      return acc + val;
-    }, 0);
-  });
+  const layer = this.layers[l];
+  if (layer.length !== deltas.length) {
+    throw new Error(`Input size mismatch during backward prop step at layer #${l + 1}`);
+  }
 
-  console.log(`  < deltaL => ${deltaL}`)
-  return this._backward(deltaL_1, l - 1);
+  const params = layer.map((neuron) => neuron.weights.slice(1));
+  const paramsTranspose = transpose(params);
+  const deltaWeights = matMult(paramsTranspose, deltas);
+  const activations = this.layers[l - 1].map(({ _activated }) => _activated * (1 - _activated));
+
+  if (activations.length !== deltaWeights.length) {
+    throw new Error(`Delta weights and activations size mismatch during backward prop step at layer #${l + 1}`);
+  }
+
+  const deltaL = deltaWeights.map((delta, i) => delta[0] * activations[i]);
+
+  return this._backward(deltaL, l - 1);
 };
 
 /**
