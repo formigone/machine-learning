@@ -222,8 +222,26 @@ describe('NN', () => {
     }
   });
 
+  it('Calculates deltas array of correct size', () => {
+    const net = new NN([2, 4, 8, 4, 2, 1]);
+    const deltasArray = net._genDeltas();
+
+    expect(deltasArray.length).to.equal(net.layers.length);
+    net.layers.forEach((layer, j) => {
+      expect(deltasArray[j].length).to.equal(layer.length);
+    });
+  });
+
+  it('Collects layer\'s activations', () => {
+    const net = new NN([2, 2, 4]);
+    net._forward([1, 1]);
+
+    expect(net._getActivations(1).length).to.equal(4);
+    expect(net._getActivations(0).length).to.equal(2);
+  });
+
   it('Back propagates error <2 : 4 : 1>', () => {
-    const net = new NN([2, 4, 1], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
+    const net = new NN([2, 4, 1], { hiddenActivator: 'Softmax', outputActivator: 'Softmax' });
 
     // 2x2 grid
     //
@@ -239,11 +257,17 @@ describe('NN', () => {
     expect(output).to.be.an('Array');
 
     const deltaL = net._vecDelta(output, labels[0]);
-    net._backward(deltaL);
+    const deltas = net._backward(deltaL);
+
+    expect(deltas).to.be.an('Array');
+    expect(deltas.length).to.equal(net.layers.length);
+    net.layers.forEach((layer, j) => {
+      expect(deltas[j].length).to.equal(layer.length);
+    });
   });
 
   it('Back propagates error <2 : 4 : 4 : 8 : 8 : 2>', () => {
-    const net = new NN([2, 4, 4, 8, 8, 2], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
+    const net = new NN([2, 4, 4, 8, 8, 2], { hiddenActivator: 'Softmax', outputActivator: 'Softmax' });
 
     // 2x2 grid
     //
@@ -259,17 +283,17 @@ describe('NN', () => {
     expect(output).to.be.an('Array');
 
     const deltaL = net._vecDelta(output, labels[0]);
-    net._backward(deltaL);
-    // net._backward(deltaL.map(delta => [delta]));
+    const deltas = net._backward(deltaL);
+
+    expect(deltas).to.be.an('Array');
+    expect(deltas.length).to.equal(net.layers.length);
+    net.layers.forEach((layer, j) => {
+      expect(deltas[j].length).to.equal(layer.length);
+    });
   });
 
   it('Gradient descent decreases close to gradient checking', () => {
-    return;
-
-
-
-
-    const net = new NN([2, 4, 1], { hiddenActivator: 'ReLU', outputActivator: 'ReLU' });
+    const net = new NN([2, 4, 1], { hiddenActivator: 'Softmax', outputActivator: 'Softmax' });
 
     // 2x2 grid
     //
@@ -278,11 +302,23 @@ describe('NN', () => {
     // 1 | 1 | 0
     // --+---+--
     // 1 | 0 | 0
-    const inputs = [[0, 0], [2, 2]];
-    const labels = [[1], [0]];
+    const inputs = [
+      [0, 0], [0, 1], [0, 2],
+      [1, 0], [1, 1], [1, 2],
+      [2, 0], [2, 1], [2, 2],
+    ];
+    const labels = [
+      [1], [1], [1],
+      [1], [1], [0],
+      [1], [0], [0],
+    ];
 
     net.train(inputs, labels, {
-      gradientChecking: function (i, gradient) {
+      maxSteps: 5,
+      logEvery: 1,
+      logger(i) {
+        const actual = net._forward(inputs[0], 0, true);
+        console.log(`${i} => (${inputs[0]} : ${actual} / ${labels[0]})  ${net._cost(labels[0], actual, 1)}`);
       }
     });
   });

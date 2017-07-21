@@ -1,9 +1,8 @@
-export function genArray(size, opt) {
+export function genArray(size, opt = {}) {
   const arr = [];
-  opt = opt || {};
   for (let i = 0; i < size; i++) {
-    if (opt.value) {
-      arr.push(value);
+    if ('value' in opt) {
+      arr.push(opt.value);
     } else if (opt.cb) {
       arr.push(opt.cb(i));
     } else {
@@ -12,6 +11,10 @@ export function genArray(size, opt) {
   }
 
   return arr;
+}
+
+export function matAdd(a, b) {
+  return a.map((val, i) => val + b[i]);
 }
 
 export function transpose(mat) {

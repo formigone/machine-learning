@@ -19,13 +19,18 @@ Neuron.prototype.dot = function (inputs) {
     .reduce((acc, input, i) => acc + input * this.weights[i], 0);
 };
 
-Neuron.prototype.activate = function(inputs, func = activators.Softmax.name) {
+Neuron.prototype.activate = function(inputs, func = activators.Softmax.name, persist = true) {
   if (!(func in Neuron.activators)) {
     throw new Error(`Invalid activator ${func}`);
   }
 
-  this._activated = Neuron.activators[func](this.dot(inputs));
-  return this._activated;
+  const out = Neuron.activators[func](this.dot(inputs));
+
+  if (persist) {
+    this._activated = out;
+  }
+
+  return out;
 };
 
 Neuron.prototype.toString = function() {

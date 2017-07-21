@@ -1,4 +1,4 @@
-import { genArray, transpose, matMult } from './math';
+import { genArray, transpose, matMult, matAdd } from './math';
 import Neuron from './Neuron';
 
 /**
@@ -25,6 +25,7 @@ function NN(layersConfig, settings = {}) {
 
   this.layers.shift();
   this.regularization = settings.regularization || 0.001;
+  this._deltas = null;
 
   this.hiddenActivator = settings.hiddenActivator || 'ReLU';
   this.outputActivator = settings.outputActivator || 'Softmax';
@@ -36,17 +37,51 @@ function NN(layersConfig, settings = {}) {
  * @param {Array<Array<number>>} labels
  * @param {Object} opt [gradientChecking]: function that receives arguments (i, gradient), where i = ith training example, and gradient = calculated gradient direction
  */
-NN.prototype.train = function(samples, labels, opt = { gradientChecking: false }) {
+NN.prototype.train = function(samples, labels, opt = { gradientChecking: false, logger: false, maxSteps: 1000, logEvery: -1 }) {
   if (samples.length !== labels.length) {
     throw new Error(`Samples/labels size mismatch during training (${samples.length} samples and ${labels.length} labels)`);
   }
 
-  const gradientCheckingCb = opt.gradientChecking instanceof Function ? opt.gradientChecking : false;
+  // const gradientCheckingCb = opt.gradientChecking instanceof Function ? opt.gradientChecking : false;
+  const logCb = opt.logger instanceof Function ? opt.logger : false;
+  const maxSteps = opt.maxSteps || 1000;
+  const logEvery = opt.logEvery || -1;
 
-  throw new Error('TODO: implement training method with option to log partial derivatives');
+  for(let step = 0; step < maxSteps; step += 1) {
+    samples.forEach((sample, i) => {
+      const output = this._forward(sample);
+      const deltaL = this._vecDelta(output, labels[i]);
+      this._backward(deltaL, null, this._deltas);
+    });
+
+    const deltas = this._deltas;
+    const m = samples.length;
+    const _m = 1 / m;
+    this.layers.forEach((layer, l) => {
+      layer.forEach((neuron) => {
+        neuron.weights = neuron.weights.map((w, j) => w + _m * deltas[l][j]);
+      });
+    });
+
+    if (logCb && opt.logEvery >= 0 && step % opt.logEvery === 0) {
+      logCb(step);
+    }
+  }
 };
 
-NN.prototype._forward = function (inputs, l = 0) {
+/**
+ *
+ * @param {Array<number>} input
+ */
+NN.prototype.classify = function(input) {
+  return this._forward(input, 0, false, false)
+};
+
+/**
+ * @param {Array<number>} inputs
+ * @param {number=} l
+ */
+NN.prototype._forward = function (inputs, l = 0, verbose = false, persist = true) {
   if (l >= this.layers.length) {
     return inputs;
   }
@@ -57,15 +92,31 @@ NN.prototype._forward = function (inputs, l = 0) {
   }
 
   const outputLayer = l === this.layers.length - 1;
+  if (verbose) {
+    console.log(` >>> ${inputs}(${l})`);
+  }
   const activator = outputLayer ? this.outputActivator : this.hiddenActivator;
+  if (verbose) {
+    console.log(` >>> [${activator}]`);
+  }
   const output = layer.map((neuron, i) => {
     // console.log(` Activating a^(${l}), ${i} => ${inputs}`);
-    return neuron.activate(inputs, activator)
+    return neuron.activate(inputs, activator, persist)
   });
+
+  if (verbose) {
+    console.log(` <<< ${output}`);
+  }
 
   return this._forward(output, l + 1);
 };
 
+/**
+ *
+ * @param {Array<number>} a
+ * @param {Array<number>} b
+ * @private
+ */
 NN.prototype._vecDelta = function(a, b) {
   if (a.length !== b.length) {
     throw new Error(`Input size mismatch while computing vector deltas`);
@@ -74,13 +125,47 @@ NN.prototype._vecDelta = function(a, b) {
   return a.map((vA, i) => vA - b[i]);
 };
 
-NN.prototype._backward = function (deltas, l = null) {
+/**
+ *
+ * @returns {Array}
+ * @private
+ */
+NN.prototype._genDeltas = function() {
+  return this.layers.map((layer) => genArray(layer.length, { value: 0 }))
+};
+
+/**
+ *
+ * @param {number} l
+ * @private
+ */
+NN.prototype._getActivations = function(l) {
+  return this.layers[l].map(({ _activated }) => _activated);
+};
+
+/**
+ *
+ * @param {Array<number>} deltas
+ * @param {number=} l
+ * @param {Array=} acc
+ * @returns {Array}
+ * @private
+ */
+NN.prototype._backward = function (deltas, l = null, acc = null, verbose = false) {
+  if (acc === null) {
+    this._deltas = this._genDeltas();
+    acc = this._deltas;
+  }
+
   if (l === null) {
     l = this.layers.length - 1;
+    acc[l] = matAdd(acc[l], this._getActivations(l).map((val) => {
+      return deltas.reduce((acc, delta) => acc + delta * val, 0);
+    }));
   }
 
   if (l < 1) {
-    return deltas;
+    return acc;
   }
 
   const layer = this.layers[l];
@@ -91,15 +176,32 @@ NN.prototype._backward = function (deltas, l = null) {
   const params = layer.map((neuron) => neuron.weights.slice(1));
   const paramsTranspose = transpose(params);
   const deltaWeights = matMult(paramsTranspose, deltas);
-  const activations = this.layers[l - 1].map(({ _activated }) => _activated * (1 - _activated));
+  const activations = this.layers[l - 1].map(({ _activated }) => {
+    if (verbose) {
+      console.log(`   Back ${_activated} * ${1 - _activated}`)
+    }
+    return _activated * (1 - _activated);
+  });
 
   if (activations.length !== deltaWeights.length) {
     throw new Error(`Delta weights and activations size mismatch during backward prop step at layer #${l + 1}`);
   }
 
+  if (verbose) {
+    console.log(`   Back ${l}, ${deltas} ${deltaWeights} : ${activations}`)
+  }
+
   const deltaL = deltaWeights.map((delta, i) => delta[0] * activations[i]);
 
-  return this._backward(deltaL, l - 1);
+  if (verbose) {
+    console.log(`   Back ${l}, ${deltaL}`)
+  }
+
+  acc[l - 1] = matAdd(acc[l - 1], this._getActivations(l - 1).map((val) => {
+    return deltas.reduce((acc, delta) => acc + delta * val, 0);
+  }));
+
+  return this._backward(deltaL, l - 1, acc);
 };
 
 /**
