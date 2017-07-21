@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <title>Neural Network</title>
+  <style>
+    body {
+      background: #eee;
+      padding: 0;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    canvas {
+      background: #fff;
+      width: 100%;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+
+<div id="plot-app"></div>
+<script src="/bundles-out/neural_network_plot.bundle.js"></script>
+<script>
+  formigone.neural_network_plot.default(document.getElementById('plot-app'));
+</script>
+</body>
+</html>
