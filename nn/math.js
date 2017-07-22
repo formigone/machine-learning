@@ -13,6 +13,11 @@ export function genArray(size, opt = {}) {
   return arr;
 }
 
+export function genMatrix(rows, cols, opt = {}) {
+  return genArray(rows, opt)
+    .map(() => genArray(cols, opt));
+}
+
 export function matAdd(a, b) {
   return a.map((val, i) => val + b[i]);
 }
@@ -74,7 +79,10 @@ export const activators = {
   ReLU(x) {
     return Math.max(0, x);
   },
-  Softmax(x) {
+  Softmax(x, deriv) {
+    if (deriv) {
+      return x * (1 - x);
+    }
     return 1 / (1 + Math.exp(-x));
   },
 };
