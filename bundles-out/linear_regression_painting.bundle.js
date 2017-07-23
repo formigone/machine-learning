@@ -1,1 +1,470 @@
-var formigone=formigone||{};formigone.linear_regression_painting=function(t){function e(r){if(n[r])return n[r].exports;var o=n[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,e),o.l=!0,o.exports}var n={};return e.m=t,e.c=n,e.d=function(t,n,r){e.o(t,n)||Object.defineProperty(t,n,{configurable:!1,enumerable:!0,get:r})},e.n=function(t){var n=t&&t.__esModule?function(){return t.default}:function(){return t};return e.d(n,"a",n),n},e.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},e.p="",e(e.s=1)}([function(t,e,n){"use strict";function r(t,e){for(var n=[],r=0;r<t;r++)e instanceof Function?n.push(e(n,r)):n.push(e);return n}function o(t){return"rgb("+((t=parseInt(t,10))>>16&255)+","+(t>>8&255)+","+(255&t)+")"}function a(t,e,n){return parseInt(String("0"+Number(t).toString(16)).slice(-2)+String("0"+Number(e).toString(16)).slice(-2)+String("0"+Number(n).toString(16)).slice(-2),16)}function i(t,e,n,o){var a=r(n*o,0);return a[e*n+t]=1,a}function s(t,e){var n=0;return t.some(function(t,e){return n=e,t>0}),[n%e,parseInt(n/e,10)]}function c(t,e){return[t%e,parseInt(t/e,10)]}Object.defineProperty(e,"__esModule",{value:!0}),e.genArray=r,e.intToRgb=o,e.rgbToInt=a,e.ptToVec=i,e.ptVecToPt=s,e.iToPt=c},function(t,e,n){"use strict";function r(t,e,n){var r=document.createElement("canvas");return r.className=n,t>0&&(r.width=t),e>0&&(r.height=e),r}function o(t,e,n,r,a,i){i.logEl||(i.logEl=document.createElement("p"),i.container.appendChild(i.logEl));var s=t.width,l=t.height;n.train(r,a,{maxCost:1e-6,learningRate:.5,epochs:5,logCost:0,logCallback:function(o){i.epoch||(i.epoch=0,i.costs=[]),i.epoch+=50,i.costs.push([i.epoch,o.cost]),i.logEl.textContent="Epoch: "+i.epoch+", Cost: "+o.cost+", Learning Rate: 0.5",r.forEach(function(r){var o=(0,c.ptVecToPt)(r,t.width),a=n.score((0,c.ptToVec)(o[0],o[1],s,l));e.fillStyle=(0,c.intToRgb)(a),e.fillRect(o[0],o[1],1,1)}),u&&(i.costsTable?i.costsTable.addRows([[i.epoch,o.cost]]):(i.costs.unshift(["Epoch","Cost"]),i.costsTable=google.visualization.arrayToDataTable(i.costs),i.chartContainer=document.createElement("div"),i.container.appendChild(i.chartContainer),i.chart=new google.visualization.LineChart(i.chartContainer)),i.epoch%1e3==0&&(i.costs=[["Epoch","Cost"]].concat(i.costs.slice(-10)),i.costsTable=google.visualization.arrayToDataTable(i.costs),i.chart=new google.visualization.LineChart(i.chartContainer)),i.chart.draw(i.costsTable,{curveType:"function"}))}}),i.running&&i.costs[i.costs.length-1][1]>1e-6?setTimeout(function(){o(t,e,n,r,a,i)},10):console.log("Done")}function a(t,e){e instanceof HTMLElement||(e=document.body);var n={running:!0,container:e},a=document.createElement("button");a.textContent="Start",a.setAttribute("disabled","true"),a.style="display: block;",e.appendChild(a);var i=new Image;i.addEventListener("load",function(t){var i=r(this.width,this.height,"lin-reg-canvas"),u=i.getContext("2d");u.drawImage(this,0,0);var l=u.getImageData(0,0,i.width,i.height);e.appendChild(i);for(var h=r(this.width,this.height,"lin-reg-canvas"),p=h.getContext("2d"),g=new s.default(this.width*this.height),f=[],d=[],m=0,v=0,b=l.data;m<l.height;m++)for(var C=0;C<l.width;C++)v=4*m*l.width+4*C,f.push((0,c.ptToVec)(C,m,this.width,this.height)),d.push([(0,c.rgbToInt)(b[v],b[v+1],b[v+2])]);e.appendChild(h),a.removeAttribute("disabled"),a.addEventListener("click",function(){"Start"===a.textContent?(o(h,p,g,f,d,n),a.textContent="Pause"):"Pause"===a.textContent?(n.running=!1,a.textContent="Continue"):"Continue"===a.textContent&&(n.running=!0,a.textContent="Pause",o(h,p,g,f,d,n))})}),i.src=t,google.charts.load("current",{packages:["corechart"]}),google.charts.setOnLoadCallback(function(){u=!0})}Object.defineProperty(e,"__esModule",{value:!0});var i=n(2),s=function(t){return t&&t.__esModule?t:{default:t}}(i),c=n(0),u=!1;e.default=a},function(t,e,n){"use strict";function r(t){this.params=(0,o.genArray)(t+1,function(){return Math.random()})}Object.defineProperty(e,"__esModule",{value:!0});var o=n(0);r.prototype.train=function(t,e,n){var r=this,o=n.epochs||10,a=0,i=n.maxCost||.05,s=n.learningRate||.05,c=n.logCost||100,u=n.logCallback||function(){},l=t.length,h=s/l,p=1/(2*l);for(t=t.map(function(t){return[1].concat(t)});a++<o;){var g=t.map(function(t){return r.score(t,!0)});if(c>0&&a%c==1){var f=g.reduce(function(t,n,r){var o=n-e[r][0];return t+o*o},0),d=p*f;if(Number.isNaN(d))throw new Error("Cost exploded");if(d<i)break;u({model:this,cost:d,epoch:a})}var m=g.map(function(t,n){return t-e[n][0]});this.params=this.params.map(function(e,n){return e-h*m.reduce(function(e,r,o){return e+r*t[o][n]},0)})}},r.prototype.score=function(t,e){if(e||(t=[1].concat(t)),t.length!==this.params.length)throw new Error("Input size mismatch. Your input must have length of "+this.params.length);var n=this.params;return t.reduce(function(t,e,r){return t+e*n[r]},0)},r.prototype.getParams=function(){return this.params},r.prototype.setParams=function(t){if(t.length!==this.params.length)throw new Error("Parameters size mismatch. Your list of parameters must have length of "+this.params.length);this.params=t},e.default=r}]);
+var formigone = formigone || {}; formigone["linear_regression_painting"] =
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.genArray = genArray;
+exports.intToRgb = intToRgb;
+exports.rgbToInt = rgbToInt;
+exports.ptToVec = ptToVec;
+exports.ptVecToPt = ptVecToPt;
+exports.iToPt = iToPt;
+function genArray(size, value) {
+  var arr = [];
+  for (var i = 0; i < size; i++) {
+    if (value instanceof Function) {
+      arr.push(value(arr, i));
+    } else {
+      arr.push(value);
+    }
+  }
+
+  return arr;
+}
+
+/**
+ *
+ * @param {number} rgb
+ */
+function intToRgb(rgb) {
+  rgb = parseInt(rgb, 10);
+  return 'rgb(' + (rgb >> 16 & 0xFF) + ',' + (rgb >> 8 & 0xFF) + ',' + (rgb & 0xFF) + ')';
+}
+
+/**
+ *
+ * @param {number} r Integer, base 10 (0-255)
+ * @param {number} g Integer, base 10 (0-255)
+ * @param {number} b Integer, base 10 (0-255)
+ */
+function rgbToInt(r, g, b) {
+  return parseInt(String('0' + Number(r).toString(16)).slice(-2) + String('0' + Number(g).toString(16)).slice(-2) + String('0' + Number(b).toString(16)).slice(-2), 16);
+}
+
+/**
+ * Given some <x, y> point, create a vector length (width * height) with all zeroes and a one at coordinate <x, y>
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} width
+ * @param {number} height
+ * @returns {Array<number>}
+ */
+function ptToVec(x, y, width, height) {
+  var vec = genArray(width * height, 0);
+  var i = y * width + x;
+  vec[i] = 1;
+  return vec;
+}
+
+/**
+ * Given a point vector representing a grid some width, find the element representing the active point, and return its <x,y> coordinate
+ * @param {Array<number>} vec
+ * @param {number} width
+ * @returns {Array<number>}
+ */
+function ptVecToPt(vec, width) {
+  var pt = 0;
+  vec.some(function (val, i) {
+    pt = i;
+    return val > 0;
+  });
+
+  return [pt % width, parseInt(pt / width, 10)];
+}
+
+/**
+ * @param {number} i
+ * @param {number} width
+ * @returns {Array<number>}
+ */
+function iToPt(i, width) {
+  return [i % width, parseInt(i / width, 10)];
+}
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _LinearRegressionModel = __webpack_require__(2);
+
+var _LinearRegressionModel2 = _interopRequireDefault(_LinearRegressionModel);
+
+var _mathHelper = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var chartsReady = false;
+function genCanvas(width, height, className) {
+  var canvas = document.createElement('canvas');
+  canvas.className = className;
+  if (width > 0) {
+    canvas.width = width;
+  }
+
+  if (height > 0) {
+    canvas.height = height;
+  }
+
+  return canvas;
+}
+
+/**
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {LinearRegressionModel} model
+ * @param {Array<Array<number>>} xTrain
+ * @param {Array<Array<number>>} yTrain
+ * @param {Object=} bundle
+ */
+function draw(canvas, ctx, model, xTrain, yTrain, bundle) {
+  if (!bundle.logEl) {
+    bundle.logEl = document.createElement('p');
+    bundle.container.appendChild(bundle.logEl);
+  }
+
+  var width = canvas.width;
+  var height = canvas.height;
+  var maxCost = 0.000001;
+  var learningRate = 0.5;
+
+  model.train(xTrain, yTrain, {
+    maxCost: maxCost,
+    learningRate: learningRate,
+    epochs: 5,
+    logCost: 0,
+    logCallback: function logCallback(data) {
+      if (!bundle.epoch) {
+        bundle.epoch = 0;
+        bundle.costs = [];
+      }
+
+      bundle.epoch += 50;
+      bundle.costs.push([bundle.epoch, data.cost]);
+      bundle.logEl.textContent = 'Epoch: ' + bundle.epoch + ', Cost: ' + data.cost + ', Learning Rate: ' + learningRate;
+
+      xTrain.forEach(function (ptVec) {
+        var pt = (0, _mathHelper.ptVecToPt)(ptVec, canvas.width);
+        var pred = model.score((0, _mathHelper.ptToVec)(pt[0], pt[1], width, height));
+        ctx.fillStyle = (0, _mathHelper.intToRgb)(pred);
+        ctx.fillRect(pt[0], pt[1], 1, 1);
+      });
+
+      if (chartsReady) {
+        if (!bundle.costsTable) {
+          bundle.costs.unshift(['Epoch', 'Cost']);
+          bundle.costsTable = google.visualization.arrayToDataTable(bundle.costs);
+
+          bundle.chartContainer = document.createElement('div');
+          bundle.container.appendChild(bundle.chartContainer);
+          bundle.chart = new google.visualization.LineChart(bundle.chartContainer);
+        } else {
+          bundle.costsTable.addRows([[bundle.epoch, data.cost]]);
+        }
+
+        if (bundle.epoch % 1000 === 0) {
+          bundle.costs = [['Epoch', 'Cost']].concat(bundle.costs.slice(-10));
+          bundle.costsTable = google.visualization.arrayToDataTable(bundle.costs);
+          bundle.chart = new google.visualization.LineChart(bundle.chartContainer);
+        }
+
+        bundle.chart.draw(bundle.costsTable, { curveType: 'function' });
+      }
+    }
+  });
+
+  if (bundle.running && bundle.costs[bundle.costs.length - 1][1] > maxCost) {
+    setTimeout(function () {
+      draw(canvas, ctx, model, xTrain, yTrain, bundle);
+    }, 10);
+  } else {
+    console.log('Done');
+  }
+}
+
+// -----------------------
+// -----------------------
+
+
+/**
+ *
+ * @param {string} imgUrl
+ * @param {HTMLElement=} container
+ */
+function main(imgUrl, container) {
+  if (!(container instanceof HTMLElement)) {
+    container = document.body;
+  }
+
+  var bundle = { running: true, container: container };
+  var btn = document.createElement('button');
+  btn.textContent = 'Start';
+  btn.setAttribute('disabled', 'true');
+  btn.style = 'display: block;';
+  container.appendChild(btn);
+
+  var img = new Image();
+  img.addEventListener('load', function (e) {
+    var canvasOriginal = genCanvas(this.width, this.height, 'lin-reg-canvas');
+    var ctxOriginal = canvasOriginal.getContext('2d');
+    ctxOriginal.drawImage(this, 0, 0);
+    var imgData = ctxOriginal.getImageData(0, 0, canvasOriginal.width, canvasOriginal.height);
+    //      ctxOriginal.fillRect(0, 0, this.width, this.height);
+    container.appendChild(canvasOriginal);
+
+    var canvas = genCanvas(this.width, this.height, 'lin-reg-canvas');
+    var ctx = canvas.getContext('2d');
+
+    var model = new _LinearRegressionModel2.default(this.width * this.height);
+    var xTrain = [];
+    var yTrain = [];
+
+    for (var y = 0, i = 0, pixels = imgData.data; y < imgData.height; y++) {
+      for (var x = 0; x < imgData.width; x++) {
+        i = y * 4 * imgData.width + x * 4;
+        xTrain.push((0, _mathHelper.ptToVec)(x, y, this.width, this.height));
+        yTrain.push([(0, _mathHelper.rgbToInt)(pixels[i], pixels[i + 1], pixels[i + 2])]);
+      }
+    }
+
+    container.appendChild(canvas);
+    btn.removeAttribute('disabled');
+    btn.addEventListener('click', function () {
+      if (btn.textContent === 'Start') {
+        draw(canvas, ctx, model, xTrain, yTrain, bundle);
+        btn.textContent = 'Pause';
+      } else if (btn.textContent === 'Pause') {
+        bundle.running = false;
+        btn.textContent = 'Continue';
+      } else if (btn.textContent === 'Continue') {
+        bundle.running = true;
+        btn.textContent = 'Pause';
+        draw(canvas, ctx, model, xTrain, yTrain, bundle);
+      }
+    });
+  });
+
+  img.src = imgUrl;
+
+  google.charts.load('current', { 'packages': ['corechart'] });
+  google.charts.setOnLoadCallback(function () {
+    chartsReady = true;
+  });
+}
+
+exports.default = main;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _mathHelper = __webpack_require__(0);
+
+function LinearRegressionModel(numFeatures) {
+  // Zeroth input will always be a constant bias unit == 1
+  /** @type {Array<number>} params */
+  this.params = (0, _mathHelper.genArray)(numFeatures + 1, function () {
+    return Math.random();
+  });
+}
+
+// Cost function:
+// J(t) = (1 / (2 * M) * SUM(1..M, h(x[i]) - y[i])^2
+
+// Gradient descent:
+// t(j) := t(j) - a *  (1 / M) * SUM(1..M, (h(x[i]) - y[i]) * x[i]
+
+// Variables:
+// t = theta
+// a = alpha (learning rate)
+// M = total samples
+// h(t) = hypothesis
+
+/**
+ *
+ * @param {Array<Array<number>>} samples List of samples
+ * @param {Array<Array<number>>} labels List of vectors
+ * @param {Object=} config - { learningRate, maxCost, epochs, logCost, logCallback }
+ */
+LinearRegressionModel.prototype.train = function (samples, labels, config) {
+  var _this = this;
+
+  var maxEpochs = config.epochs || 10;
+  var epoch = 0;
+  var maxCost = config.maxCost || 0.05;
+  var learningRate = config.learningRate || 0.05;
+  var logCost = config.logCost || 100;
+  var logCallback = config.logCallback || function () {};
+  var M = samples.length;
+
+  var lr = learningRate / M;
+  var costFrac = 1 / (2 * M);
+
+  // Add zeroth bias input
+  samples = samples.map(function (sample) {
+    return [1].concat(sample);
+  });
+
+  while (epoch++ < maxEpochs) {
+    var scores = samples.map(function (sample) {
+      return _this.score(sample, true);
+    });
+
+    if (logCost > 0 && epoch % logCost === 1) {
+      var errorSquared = scores.reduce(function (acc, score, i) {
+        var diff = score - labels[i][0];
+        return acc + diff * diff;
+      }, 0);
+      var cost = costFrac * errorSquared;
+      if (Number.isNaN(cost)) {
+        throw new Error('Cost exploded');
+      }
+
+      if (cost < maxCost) {
+        break;
+      }
+
+      logCallback({ model: this, cost: cost, epoch: epoch });
+    }
+
+    var errors = scores.map(function (score, i) {
+      return score - labels[i][0];
+    });
+    this.params = this.params.map(function (param, col) {
+      return param - lr * errors.reduce(function (acc, error, row) {
+        return acc + error * samples[row][col];
+      }, 0);
+    });
+  }
+};
+
+/**
+ *
+ * @param {Array<number>} inputs
+ * @param {boolean=} includeBias
+ */
+LinearRegressionModel.prototype.score = function (inputs, includeBias) {
+  if (!includeBias) {
+    inputs = [1].concat(inputs);
+  }
+
+  if (inputs.length !== this.params.length) {
+    throw new Error('Input size mismatch. Your input must have length of ' + this.params.length);
+  }
+
+  var params = this.params;
+  return inputs.reduce(function (acc, input, i) {
+    return acc + input * params[i];
+  }, 0);
+};
+
+/**
+ *
+ * @returm {Array<number>}
+ */
+LinearRegressionModel.prototype.getParams = function () {
+  return this.params;
+};
+
+/**
+ *
+ * @param {Array<number>} params
+ */
+LinearRegressionModel.prototype.setParams = function (params) {
+  if (params.length !== this.params.length) {
+    throw new Error('Parameters size mismatch. Your list of parameters must have length of ' + this.params.length);
+  }
+
+  this.params = params;
+};
+
+exports.default = LinearRegressionModel;
+
+/***/ })
+/******/ ]);

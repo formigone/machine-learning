@@ -1,1 +1,550 @@
-var formigone=formigone||{};formigone.logistic_regression_plot=function(t){function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}var e={};return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{configurable:!1,enumerable:!0,get:r})},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,n){return Object.prototype.hasOwnProperty.call(t,n)},n.p="",n(n.s=3)}([function(t,n,e){"use strict";function r(t,n){for(var e=[],r=0;r<t;r++)n instanceof Function?e.push(n(e,r)):e.push(n);return e}function o(t){return"rgb("+((t=parseInt(t,10))>>16&255)+","+(t>>8&255)+","+(255&t)+")"}function i(t,n,e){return parseInt(String("0"+Number(t).toString(16)).slice(-2)+String("0"+Number(n).toString(16)).slice(-2)+String("0"+Number(e).toString(16)).slice(-2),16)}function a(t,n,e,o){var i=r(e*o,0);return i[n*e+t]=1,i}function u(t,n){var e=0;return t.some(function(t,n){return e=n,t>0}),[e%n,parseInt(e/n,10)]}function c(t,n){return[t%n,parseInt(t/n,10)]}Object.defineProperty(n,"__esModule",{value:!0}),n.genArray=r,n.intToRgb=o,n.rgbToInt=i,n.ptToVec=a,n.ptVecToPt=u,n.iToPt=c},,,function(t,n,e){"use strict";function r(t,n){return t.reduce(function(t,e,r){return t+e*n[r]},0)}function o(t){return 1/(1+Math.exp(-t))}function i(t,n){return-1/t.length*t.reduce(function(t,e,r){var o=n[r][0];return o*Math.log(e)+(1-o)*Math.log(1-e)},0)}function a(t){t.clearRect(0,0,window.innerWidth,window.innerHeight)}function u(t,n){n.forEach(function(n){t.fillStyle=n.color,t.fillRect(Math.max(0,n.x-2),Math.max(0,n.y-2),4,4)})}function c(t,n,e,i){for(var a=0;a<i;a++)for(var u=0;u<e;u++)o(r([1,u/100,a/100],n))<.5?t.fillStyle="#b22438":t.fillStyle="#fff9b6",t.fillRect(u,a,1,1)}function s(t,n,e,f,l,h,p,m,d,g,v){var y=t.map(function(t){return o(r(t,e))}),b=y.map(function(t,e){return t-n[e][0]});e=e.map(function(n,e){return n-f*b.reduce(function(n,r,o){return n+r*t[o][e]},0)});var M=i(y,n);l%10==0&&(v.textContent="Epoch = "+l+", Cost = "+M+", Learning Rate = "+f,a(m),c(m,e,d,g),u(m,p)),l<h&&requestAnimationFrame(function(){setTimeout(function(){s(t,n,e,f,l+1,h,p,m,d,g,v)},0)})}function f(t){t instanceof HTMLElement||(t=document.body);var n=document.createElement("button");n.textContent="Start",n.style="display: block;",t.appendChild(n);var e=(0,h.genCanvas)(Math.min(window.innerWidth,600),Math.min(.3*window.innerHeight,300),"log-reg-canvas");t.appendChild(e);var r=e.getContext("2d"),o={yIntercept:e.height/2,slope:Math.random()-.25},i=[],a={pos:"#3c5cff",neg:"#f956ff"},f=document.createElement("p");t.appendChild(f);for(var l=0;l<110;l++){var p=new h.Point(Math.max(6,parseInt(Math.random()*e.width,10)-3),Math.max(6,parseInt(Math.random()*e.height,10)-3),a.pos);p.y<=(0,h.calcY)(p.x,o.slope,o.yIntercept)&&(p.color=a.neg),i.push(p)}var m=i.map(function(t){return[1,t.x/100,t.y/100]}),d=i.map(function(t){var n=t.color;return[Number(n===a.pos)]}),g=m[0].map(function(){return Math.random()});c(r,g,e.width,e.height),u(r,i),n.addEventListener("click",function(){s(m,d,g,.01,0,5e3,i,r,e.width,e.height,f),n.setAttribute("disabled","true")})}Object.defineProperty(n,"__esModule",{value:!0});var l=e(4),h=(function(t){t&&t.__esModule}(l),e(5));n.default=f},function(t,n,e){"use strict";function r(t){this.params=(0,o.genArray)(t+1,function(){return Math.random()})}Object.defineProperty(n,"__esModule",{value:!0});var o=e(0);r.prototype.train=function(t,n,e){for(var r=this,o=e.epochs||10,i=0,a=(e.maxCost,e.learningRate||.05),u=e.logCost||100,c=e.logCallback||function(){},s=t.length,f=a/s;i++<o;){var l=t.map(function(t){return r.score(t)});u>0&&i%u==0&&c({model:this,cost:10,epoch:i,logCost:u});var h=l.map(function(t,e){return t-n[e][0]});this.params=this.params.map(function(n,e){return n-f*h.reduce(function(n,r,o){return n+r*t[o][e]},0)})}},r.prototype.score=function(t){var n=this;if(t.length!==this.params.length)throw new Error("Input size mismatch. Your input must have length of "+this.params.length);var e=t.reduce(function(t,e,r){return t+e*n.params[r]},0);return 1/(1+Math.exp(-e))},r.prototype.getParams=function(){return this.params},r.prototype.setParams=function(t){if(t.length!==this.params.length)throw new Error("Parameters size mismatch. Your list of parameters must have length of "+this.params.length);this.params=t},n.default=r},function(t,n,e){"use strict";function r(t,n,e,r){var o=e.getContext("2d");o.save(),Object.keys(r).forEach(function(t){o[t]=r[t]});var i=t*e.width+n;o.beginPath(),o.moveTo(0,n),o.lineTo(e.width,i),o.stroke(),o.restore()}function o(t,n,e){var r=document.createElement("canvas");return r.width=t,r.height=n,r.className=e,r}function i(t,n,e){return n*t+e}function a(t,n,e){n.save(),Object.keys(e).forEach(function(t){n[t]=e[t]}),n.beginPath(),n.arc(t.x,t.y,e.radius,0,2*Math.PI,!1),n.fillStyle=t.color,n.fill(),n.restore()}function u(t,n,e){this.x=t,this.y=n,this.color=e}Object.defineProperty(n,"__esModule",{value:!0}),n.drawLine=r,n.genCanvas=o,n.calcY=i,n.drawPoint=a,n.Point=u}]);
+var formigone = formigone || {}; formigone["logistic_regression_plot"] =
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.genArray = genArray;
+exports.intToRgb = intToRgb;
+exports.rgbToInt = rgbToInt;
+exports.ptToVec = ptToVec;
+exports.ptVecToPt = ptVecToPt;
+exports.iToPt = iToPt;
+function genArray(size, value) {
+  var arr = [];
+  for (var i = 0; i < size; i++) {
+    if (value instanceof Function) {
+      arr.push(value(arr, i));
+    } else {
+      arr.push(value);
+    }
+  }
+
+  return arr;
+}
+
+/**
+ *
+ * @param {number} rgb
+ */
+function intToRgb(rgb) {
+  rgb = parseInt(rgb, 10);
+  return 'rgb(' + (rgb >> 16 & 0xFF) + ',' + (rgb >> 8 & 0xFF) + ',' + (rgb & 0xFF) + ')';
+}
+
+/**
+ *
+ * @param {number} r Integer, base 10 (0-255)
+ * @param {number} g Integer, base 10 (0-255)
+ * @param {number} b Integer, base 10 (0-255)
+ */
+function rgbToInt(r, g, b) {
+  return parseInt(String('0' + Number(r).toString(16)).slice(-2) + String('0' + Number(g).toString(16)).slice(-2) + String('0' + Number(b).toString(16)).slice(-2), 16);
+}
+
+/**
+ * Given some <x, y> point, create a vector length (width * height) with all zeroes and a one at coordinate <x, y>
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} width
+ * @param {number} height
+ * @returns {Array<number>}
+ */
+function ptToVec(x, y, width, height) {
+  var vec = genArray(width * height, 0);
+  var i = y * width + x;
+  vec[i] = 1;
+  return vec;
+}
+
+/**
+ * Given a point vector representing a grid some width, find the element representing the active point, and return its <x,y> coordinate
+ * @param {Array<number>} vec
+ * @param {number} width
+ * @returns {Array<number>}
+ */
+function ptVecToPt(vec, width) {
+  var pt = 0;
+  vec.some(function (val, i) {
+    pt = i;
+    return val > 0;
+  });
+
+  return [pt % width, parseInt(pt / width, 10)];
+}
+
+/**
+ * @param {number} i
+ * @param {number} width
+ * @returns {Array<number>}
+ */
+function iToPt(i, width) {
+  return [i % width, parseInt(i / width, 10)];
+}
+
+/***/ }),
+/* 1 */,
+/* 2 */,
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _SigmoidClassifier = __webpack_require__(4);
+
+var _SigmoidClassifier2 = _interopRequireDefault(_SigmoidClassifier);
+
+var _util = __webpack_require__(5);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sum(x, w) {
+  return x.reduce(function (acc, _x, i) {
+    return acc + _x * w[i];
+  }, 0);
+}
+
+function sig(z) {
+  return 1 / (1 + Math.exp(-z));
+}
+
+function cost(scores, labels) {
+  return -(1 / scores.length) * scores.reduce(function (acc, score, i) {
+    var y = labels[i][0];
+    return y * Math.log(score) + (1 - y) * Math.log(1 - score);
+  }, 0);
+}
+
+function clear(ctx) {
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+function render(ctx, points) {
+  points.forEach(function (point) {
+    ctx.fillStyle = point.color;
+    ctx.fillRect(Math.max(0, point.x - 2), Math.max(0, point.y - 2), 4, 4);
+  });
+}
+
+function renderEach(ctx, params, width, height) {
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      if (sig(sum([1, x / 100, y / 100], params)) < 0.5) {
+        ctx.fillStyle = '#b22438';
+      } else {
+        ctx.fillStyle = '#fff9b6';
+      }
+
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+/**
+ *
+ * @param {Array<Array<number>>} xTrain
+ * @param {Array<Array<number>>} yTrain
+ * @param {Array<number>} params
+ * @param {number} learningRate
+ * @param {number} cycle
+ * @param {number} maxCycles
+ * @param {Array<Point>} points
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} width
+ * @param {number} height
+ * @param {HTMLElement} log
+ */
+function doEpoch(xTrain, yTrain, params, learningRate, cycle, maxCycles, points, ctx, width, height, log) {
+  var scores = xTrain.map(function (sample) {
+    return sig(sum(sample, params));
+  });
+  var errors = scores.map(function (score, i) {
+    return score - yTrain[i][0];
+  });
+
+  params = params.map(function (param, col) {
+    return param - learningRate * errors.reduce(function (acc, error, row) {
+      return acc + error * xTrain[row][col];
+    }, 0);
+  });
+
+  var J = cost(scores, yTrain);
+
+  if (cycle % 10 === 0) {
+    log.textContent = 'Epoch = ' + cycle + ', Cost = ' + J + ', Learning Rate = ' + learningRate;
+    clear(ctx);
+    renderEach(ctx, params, width, height);
+    render(ctx, points);
+  }
+
+  if (cycle < maxCycles) {
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        doEpoch(xTrain, yTrain, params, learningRate, cycle + 1, maxCycles, points, ctx, width, height, log);
+      }, 0);
+    });
+  }
+}
+
+/**
+ *
+ * @param {HTMLElement=} container
+ */
+function main(container) {
+  if (!(container instanceof HTMLElement)) {
+    container = document.body;
+  }
+
+  var btn = document.createElement('button');
+  btn.textContent = 'Start';
+  btn.style = 'display: block;';
+  container.appendChild(btn);
+
+  var canvas = (0, _util.genCanvas)(Math.min(window.innerWidth, 600), Math.min(window.innerHeight * 0.3, 300), 'log-reg-canvas');
+  container.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+
+  var line = { yIntercept: canvas.height / 2, slope: Math.random() - 0.25 };
+
+  var points = [];
+  var radius = 3;
+  var colors = {
+    pos: '#3c5cff',
+    neg: '#f956ff'
+  };
+
+  var log = document.createElement('p');
+  container.appendChild(log);
+
+  for (var i = 0; i < 110; i++) {
+    var point = new _util.Point(Math.max(radius * 2, parseInt(Math.random() * canvas.width, 10) - radius), Math.max(radius * 2, parseInt(Math.random() * canvas.height, 10) - radius), colors.pos);
+
+    if (point.y <= (0, _util.calcY)(point.x, line.slope, line.yIntercept)) {
+      point.color = colors.neg;
+    }
+
+    points.push(point);
+  }
+
+  var xTrain = points.map(function (_ref) {
+    var x = _ref.x,
+        y = _ref.y;
+    return [1, x / 100, y / 100];
+  });
+  var yTrain = points.map(function (_ref2) {
+    var color = _ref2.color;
+    return [Number(color === colors.pos)];
+  });
+
+  var params = xTrain[0].map(function () {
+    return Math.random();
+  });
+
+  var epochs = 5000;
+  var learningRate = 0.01;
+
+  renderEach(ctx, params, canvas.width, canvas.height);
+  render(ctx, points);
+
+  btn.addEventListener('click', function () {
+    doEpoch(xTrain, yTrain, params, learningRate, 0, epochs, points, ctx, canvas.width, canvas.height, log);
+    btn.setAttribute('disabled', 'true');
+  });
+}
+
+exports.default = main;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _mathHelper = __webpack_require__(0);
+
+function SigmoidClassifier(numFeatures) {
+  // Zeroth input will always be a constant bias unit == 1
+  /** @type {Array<number>} params */
+  this.params = (0, _mathHelper.genArray)(numFeatures + 1, function () {
+    return Math.random();
+  });
+}
+
+// Cost function:
+// J(t) = (1 / (2 * M) * SUM(1..M, h(x[i]) - y[i])^2
+
+// Gradient descent:
+// t(j) := t(j) - a *  (1 / M) * SUM(1..M, (h(x[i]) - y[i]) * x[i]
+
+// Variables:
+// t = theta
+// a = alpha (learning rate)
+// M = total samples
+// h(t) = hypothesis
+
+/**
+ *
+ * @param {Array<Array<number>>} samples List of samples
+ * @param {Array<Array<number>>} labels List of vectors
+ * @param {Object=} config - { learningRate, maxCost, epochs, logCost, logCallback }
+ */
+SigmoidClassifier.prototype.train = function (samples, labels, config) {
+  var _this = this;
+
+  var maxEpochs = config.epochs || 10;
+  var epoch = 0;
+  var maxCost = config.maxCost || 0.05;
+  var learningRate = config.learningRate || 0.05;
+  var logCost = config.logCost || 100;
+  var logCallback = config.logCallback || function () {};
+  var M = samples.length;
+
+  var lr = learningRate / M;
+  var costFrac = -1 / M;
+
+  while (epoch++ < maxEpochs) {
+    var scores = samples.map(function (sample) {
+      return _this.score(sample);
+    });
+
+    if (logCost > 0 && epoch % logCost === 0) {
+      //   var error = scores.reduce(function (acc, score, i) {
+      //     const diff = (labels[i][0] * Math.log(score)) + (1 - labels[i][0]) * Math.log(1 - score);
+      //     return acc + diff;
+      //   }, 0);
+      //   var cost = costFrac * error;
+      //   if (Number.isNaN(cost)) {
+      //     throw new Error('Cost exploded');
+      //   }
+      //
+      //   if (cost < maxCost) {
+      //     break;
+      //   }
+      //
+      logCallback({ model: this, cost: 10, epoch: epoch, logCost: logCost });
+    }
+
+    var errors = scores.map(function (score, i) {
+      return score - labels[i][0];
+    });
+    this.params = this.params.map(function (param, col) {
+      return param - lr * errors.reduce(function (acc, error, row) {
+        return acc + error * samples[row][col];
+      }, 0);
+    });
+  }
+};
+
+/**
+ *
+ * @param {Array<number>} inputs
+ */
+SigmoidClassifier.prototype.score = function (inputs) {
+  var _this2 = this;
+
+  if (inputs.length !== this.params.length) {
+    throw new Error('Input size mismatch. Your input must have length of ' + this.params.length);
+  }
+
+  var sum = inputs.reduce(function (acc, input, i) {
+    return acc + input * _this2.params[i];
+  }, 0);
+
+  return 1 / (1 + Math.exp(-sum));
+};
+
+/**
+ *
+ * @returm {Array<number>}
+ */
+SigmoidClassifier.prototype.getParams = function () {
+  return this.params;
+};
+
+/**
+ *
+ * @param {Array<number>} params
+ */
+SigmoidClassifier.prototype.setParams = function (params) {
+  if (params.length !== this.params.length) {
+    throw new Error('Parameters size mismatch. Your list of parameters must have length of ' + this.params.length);
+  }
+
+  this.params = params;
+};
+
+exports.default = SigmoidClassifier;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.drawLine = drawLine;
+exports.genCanvas = genCanvas;
+exports.calcY = calcY;
+exports.drawPoint = drawPoint;
+exports.Point = Point;
+/**
+ *
+ * @param slope
+ * @param yIntercept
+ * @param {HTMLCanvasElement} canvas
+ * @param {Object} config
+ */
+function drawLine(slope, yIntercept, canvas, config) {
+  var ctx = canvas.getContext('2d');
+  ctx.save();
+  Object.keys(config).forEach(function (key) {
+    ctx[key] = config[key];
+  });
+
+  var y = slope * canvas.width + yIntercept;
+  ctx.beginPath();
+  ctx.moveTo(0, yIntercept);
+  ctx.lineTo(canvas.width, y);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function genCanvas(width, height, className) {
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.className = className;
+  return canvas;
+}
+
+/**
+ *
+ * @param {number} x
+ * @param {number} slope
+ * @param {number} yIntercept
+ * @returns {number}
+ */
+function calcY(x, slope, yIntercept) {
+  return slope * x + yIntercept;
+}
+
+/**
+ *
+ * @param {Point} point
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Object} config
+ */
+function drawPoint(point, ctx, config) {
+  ctx.save();
+  Object.keys(config).forEach(function (key) {
+    ctx[key] = config[key];
+  });
+
+  ctx.beginPath();
+  ctx.arc(point.x, point.y, config.radius, 0, 2 * Math.PI, false);
+  ctx.fillStyle = point.color;
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {string} color
+ * @constructor
+ */
+function Point(x, y, color) {
+  this.x = x;
+  this.y = y;
+  this.color = color;
+}
+
+/***/ })
+/******/ ]);

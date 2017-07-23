@@ -1,28 +1,36 @@
+import synaptic from 'synaptic';
+
 function curveFactory(yIntercept, width) {
   return (x) => width * x * x + yIntercept;
 }
 
 function render(ctx, points) {
-  points.forEach(point => {
-    if (Math.random() > 0.99) {
-      ctx.fillStyle = point[2];
-      ctx.fillRect(point[0] - 2, point[1] - 2, 4, 4);
-    }
-  })
+  points.forEach((point, i) => {
+    ctx.fillStyle = point[2];
+    ctx.fillRect(point[0] - 2, point[1] - 2, 4, 4);
+  });
 }
 
-function renderEach(ctx, width, height) {
+function renderEach(canvas, ctx, width, height, net) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (y > x / 2) {
-        ctx.fillStyle = '#b22438';
+      let pred = net.activate([x / canvas.width, y / canvas.height])[0];
+      if (pred <= 0.5) {
+        ctx.fillStyle = '#FFB5F7';
       } else {
-        ctx.fillStyle = '#fff9b6';
+        ctx.fillStyle = '#A5A6FF';
       }
 
       ctx.fillRect(x, y, 1, 1);
     }
   }
+}
+
+function dist(a, b) {
+  const x = a[0] - b[0];
+  const y = a[1] - b[1];
+
+  return Math.sqrt(x * x + y * y);
 }
 
 /**
@@ -52,29 +60,52 @@ function main(container) {
     neg: '#f956ff',
   };
 
-  const curve = curveFactory(canvas.height / 4, Math.random() / 500);
+  const circle1 = [canvas.width / 2, canvas.height / 5 * 3, canvas.height / 1.5];
+  const circle2 = [canvas.width / 3, canvas.height / 5, canvas.height / 2.5];
 
-  for (let i = 0; i < 15000; i++) {
-    let point = [
-      parseInt(Math.random() * canvas.width, 10),
-      parseInt(Math.random() * canvas.height, 10),
-      colors.pos,
-    ];
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      let point = [x, y, colors.pos];
 
-    if (point[1] > curve(point[0])) {
-      point[2] = colors.neg;
+      if (dist(point, circle1) < circle1[2] && dist(point, circle2) > circle2[2]) {
+        point[2] = colors.neg;
+      }
+
+      points.push(point);
     }
-
-    points.push(point);
   }
 
-  let xTrain = points.map(({ x, y }) => [1, x / 100, y / 100]);
-  let yTrain = points.map(({ color }) => [Number(color === colors.pos)]);
+  let xTrain = points.map(([x, y]) => [x / canvas.width, y / canvas.height]);
+  let yTrain = points.map(([x, y, color]) => [Number(color === colors.pos)]);
+  let trainingSet = xTrain.map((input, i) => (Math.random() > 0.9 ? { input, output: yTrain[i] } : null)).filter(_ => _);
+  let samplePoints = points.map((point) => Math.random() > 0.999 ? point : null).filter(_ => _);
+
+  const net = new synaptic.Architect.Perceptron(2, 8, 8, 8, 8, 1);
+  const trainer = new synaptic.Trainer(net);
 
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  renderEach(ctx, canvas.width, canvas.height);
-  render(ctx, points);
+  renderEach(canvas, ctx, canvas.width, canvas.height, net);
+  render(ctx, samplePoints);
 
+  function train(i, max) {
+    trainer.trainAsync(trainingSet, {
+      rate: 0.0003,
+      iterations: 100,
+    }).then((res) => {
+      console.log(`Error: ${res.error}`)
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      renderEach(canvas, ctx, canvas.width, canvas.height, net);
+      render(ctx, samplePoints);
+
+      if (i < max) {
+        setTimeout(() => {
+          train(i + 1, max);
+        }, 10);
+      }
+    });
+  }
+
+  train(0, 10000);
   btn.addEventListener('click', function () {
     btn.setAttribute('disabled', 'true');
   });
