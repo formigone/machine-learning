@@ -61,172 +61,11 @@ var formigone = formigone || {}; formigone["neural_network_plot"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
 /******/ })
 /************************************************************************/
 /******/ ([
-/* 0 */,
-/* 1 */,
-/* 2 */,
-/* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _synaptic = __webpack_require__(12);
-
-var _synaptic2 = _interopRequireDefault(_synaptic);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function curveFactory(yIntercept, width) {
-  return function (x) {
-    return width * x * x + yIntercept;
-  };
-}
-
-function render(ctx, points) {
-  points.forEach(function (point, i) {
-    ctx.fillStyle = point[2];
-    ctx.fillRect(point[0] - 2, point[1] - 2, 4, 4);
-  });
-}
-
-function renderEach(canvas, ctx, width, height, net) {
-  for (var y = 0; y < height; y++) {
-    for (var x = 0; x < width; x++) {
-      var pred = net.activate([x / canvas.width, y / canvas.height])[0];
-      if (pred <= 0.5) {
-        ctx.fillStyle = '#FFB5F7';
-      } else {
-        ctx.fillStyle = '#A5A6FF';
-      }
-
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-}
-
-function dist(a, b) {
-  var x = a[0] - b[0];
-  var y = a[1] - b[1];
-
-  return Math.sqrt(x * x + y * y);
-}
-
-/**
- *
- * @param {HTMLElement=} container
- */
-function main(container) {
-  if (!(container instanceof HTMLElement)) {
-    container = document.body;
-  }
-
-  var btn = document.createElement('button');
-  btn.textContent = 'Start';
-  btn.style = 'display: block;';
-  container.appendChild(btn);
-
-  var canvas = document.createElement('canvas');
-  canvas.width = Math.min(window.innerWidth, 600);
-  canvas.height = Math.min(window.innerHeight * 0.3, 300);
-  canvas.classname = 'nn-canvas';
-  container.appendChild(canvas);
-  var ctx = canvas.getContext('2d');
-
-  var points = [];
-  var colors = {
-    pos: '#3c5cff',
-    neg: '#f956ff'
-  };
-
-  var circle1 = [canvas.width / 2, canvas.height / 5 * 3, canvas.height / 1.5];
-  var circle2 = [canvas.width / 3, canvas.height / 5, canvas.height / 2.5];
-
-  for (var y = 0; y < canvas.height; y++) {
-    for (var x = 0; x < canvas.width; x++) {
-      var point = [x, y, colors.pos];
-
-      if (dist(point, circle1) < circle1[2] && dist(point, circle2) > circle2[2]) {
-        point[2] = colors.neg;
-      }
-
-      points.push(point);
-    }
-  }
-
-  var xTrain = points.map(function (_ref) {
-    var _ref2 = _slicedToArray(_ref, 2),
-        x = _ref2[0],
-        y = _ref2[1];
-
-    return [x / canvas.width, y / canvas.height];
-  });
-  var yTrain = points.map(function (_ref3) {
-    var _ref4 = _slicedToArray(_ref3, 3),
-        x = _ref4[0],
-        y = _ref4[1],
-        color = _ref4[2];
-
-    return [Number(color === colors.pos)];
-  });
-  var trainingSet = xTrain.map(function (input, i) {
-    return Math.random() > 0.9 ? { input: input, output: yTrain[i] } : null;
-  }).filter(function (_) {
-    return _;
-  });
-  var samplePoints = points.map(function (point) {
-    return Math.random() > 0.999 ? point : null;
-  }).filter(function (_) {
-    return _;
-  });
-
-  var net = new _synaptic2.default.Architect.Perceptron(2, 8, 8, 8, 8, 1);
-  var trainer = new _synaptic2.default.Trainer(net);
-
-  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  renderEach(canvas, ctx, canvas.width, canvas.height, net);
-  render(ctx, samplePoints);
-
-  function train(i, max) {
-    trainer.trainAsync(trainingSet, {
-      rate: 0.0003,
-      iterations: 100
-    }).then(function (res) {
-      console.log('Error: ' + res.error);
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      renderEach(canvas, ctx, canvas.width, canvas.height, net);
-      render(ctx, samplePoints);
-
-      if (i < max) {
-        setTimeout(function () {
-          train(i + 1, max);
-        }, 10);
-      }
-    });
-  }
-
-  train(0, 10000);
-  btn.addEventListener('click', function () {
-    btn.setAttribute('disabled', 'true');
-  });
-}
-
-exports.default = main;
-
-/***/ }),
-/* 7 */
+/* 0 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -254,7 +93,8 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 8 */
+/* 1 */,
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {// export
@@ -1054,18 +894,18 @@ Neuron.squash.RELU = function(x, derivate) {
   }
 })();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
-/* 9 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {// export
 if (module) module.exports = Layer;
 
 // import
-var Neuron  = __webpack_require__(8)
-,   Network = __webpack_require__(10)
+var Neuron  = __webpack_require__(2)
+,   Network = __webpack_require__(4)
 
 /*******************************************************************************************
                                             LAYER
@@ -1337,19 +1177,19 @@ Layer.gateType.ONE_TO_ONE = "ONE TO ONE";
   }
 })();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
-/* 10 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {// export
 if (module) module.exports = Network;
 
 // import
-var Neuron  = __webpack_require__(8)
-,   Layer   = __webpack_require__(9)
-,   Trainer = __webpack_require__(11)
+var Neuron  = __webpack_require__(2)
+,   Layer   = __webpack_require__(3)
+,   Trainer = __webpack_require__(5)
 
 /*******************************************************************************************
                                          NETWORK
@@ -1989,10 +1829,10 @@ Network.fromJSON = function(json) {
   return new Network(layers);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
-/* 11 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {// export
@@ -2670,17 +2510,177 @@ Trainer.cost = {
   }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
+
+/***/ }),
+/* 6 */,
+/* 7 */,
+/* 8 */,
+/* 9 */,
+/* 10 */,
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _synaptic = __webpack_require__(12);
+
+var _synaptic2 = _interopRequireDefault(_synaptic);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var log = document.createElement('p');
+
+function curveFactory(yIntercept, width) {
+  return function (x) {
+    return width * x * x + yIntercept;
+  };
+}
+
+function render(ctx, points) {
+  points.forEach(function (point, i) {
+    ctx.fillStyle = point[2];
+    ctx.fillRect(point[0] - 2, point[1] - 2, 4, 4);
+  });
+}
+
+function renderEach(canvas, ctx, width, height, net) {
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      var pred = net.activate([x / canvas.width, y / canvas.height])[0];
+      if (pred <= 0.5) {
+        ctx.fillStyle = '#FFB5F7';
+      } else {
+        ctx.fillStyle = '#A5A6FF';
+      }
+
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+function dist(a, b) {
+  var x = a[0] - b[0];
+  var y = a[1] - b[1];
+
+  return Math.sqrt(x * x + y * y);
+}
+
+/**
+ *
+ * @param {HTMLElement=} container
+ */
+function main(container) {
+  if (!(container instanceof HTMLElement)) {
+    container = document.body;
+  }
+
+  var btn = document.createElement('button');
+  btn.textContent = 'Start';
+  btn.style = 'display: block;';
+  container.appendChild(btn);
+
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.min(window.innerWidth, 600);
+  canvas.height = Math.min(window.innerHeight * 0.3, 300);
+  canvas.classname = 'nn-canvas';
+  container.appendChild(canvas);
+  container.appendChild(log);
+  var ctx = canvas.getContext('2d');
+
+  var points = [];
+  var colors = {
+    pos: '#3c5cff',
+    neg: '#f956ff'
+  };
+
+  var circle1 = [canvas.width / 2, canvas.height / 5 * 3, canvas.height / 1.5];
+  var circle2 = [canvas.width / 3, canvas.height / 5, canvas.height / 2.5];
+
+  for (var y = 0; y < canvas.height; y++) {
+    for (var x = 0; x < canvas.width; x++) {
+      var point = [x, y, colors.pos];
+
+      if (dist(point, circle1) < circle1[2] && dist(point, circle2) > circle2[2]) {
+        point[2] = colors.neg;
+      }
+
+      points.push(point);
+    }
+  }
+
+  var xTrain = points.map(function (_ref) {
+    var _ref2 = _slicedToArray(_ref, 2),
+        x = _ref2[0],
+        y = _ref2[1];
+
+    return [x / canvas.width, y / canvas.height];
+  });
+  var yTrain = points.map(function (_ref3) {
+    var _ref4 = _slicedToArray(_ref3, 3),
+        x = _ref4[0],
+        y = _ref4[1],
+        color = _ref4[2];
+
+    return [Number(color === colors.pos)];
+  });
+  var trainingSet = xTrain.map(function (input, i) {
+    return Math.random() > 0.9 ? { input: input, output: yTrain[i] } : null;
+  }).filter(function (_) {
+    return _;
+  });
+  var samplePoints = points.map(function (point) {
+    return Math.random() > 0.998 ? point : null;
+  }).filter(function (_) {
+    return _;
+  });
+
+  var net = new _synaptic2.default.Architect.Perceptron(2, 8, 8, 1);
+  var trainer = new _synaptic2.default.Trainer(net);
+
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  renderEach(canvas, ctx, canvas.width, canvas.height, net);
+  render(ctx, samplePoints);
+
+  var settings = { rate: 0.005, iterations: 10 };
+
+  function train(i, max) {
+    trainer.trainAsync(trainingSet, settings).then(function (res) {
+      log.textContent = 'Epoch = ' + i + ', Cost = ' + Number(res.error).toFixed(8) + ', Learning Rate = ' + settings.rate;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      renderEach(canvas, ctx, canvas.width, canvas.height, net);
+      render(ctx, samplePoints);
+
+      if (i < max) {
+        train(i + 1, max);
+      }
+    });
+  }
+
+  btn.addEventListener('click', function () {
+    btn.setAttribute('disabled', 'true');
+    train(0, 10000);
+  });
+}
+
+exports.default = main;
 
 /***/ }),
 /* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var Synaptic = {
-    Neuron: __webpack_require__(8),
-    Layer: __webpack_require__(9),
-    Network: __webpack_require__(10),
-    Trainer: __webpack_require__(11),
+    Neuron: __webpack_require__(2),
+    Layer: __webpack_require__(3),
+    Network: __webpack_require__(4),
+    Trainer: __webpack_require__(5),
     Architect: __webpack_require__(13)
 };
 
@@ -2717,9 +2717,9 @@ if (typeof window == 'object')
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {// import
-var Layer   = __webpack_require__(9)
-,   Network = __webpack_require__(10)
-,   Trainer = __webpack_require__(11)
+var Layer   = __webpack_require__(3)
+,   Network = __webpack_require__(4)
+,   Trainer = __webpack_require__(5)
 
 /*******************************************************************************************
                                         ARCHITECT
@@ -2989,7 +2989,7 @@ for (var architecture in Architect) {
 
 // export
 if (module) module.exports = Architect;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ })
 /******/ ]);

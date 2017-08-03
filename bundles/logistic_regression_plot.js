@@ -32,9 +32,9 @@ function renderEach(ctx, params, width, height) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (sig(sum([1, x / 100, y / 100], params)) < 0.5) {
-        ctx.fillStyle = '#b22438';
+        ctx.fillStyle = '#FFB5F7';
       } else {
-        ctx.fillStyle = '#fff9b6';
+        ctx.fillStyle = '#A5A6FF';
       }
 
       ctx.fillRect(x, y, 1, 1);
@@ -67,7 +67,7 @@ function doEpoch(xTrain, yTrain, params, learningRate, cycle, maxCycles, points,
   const J = cost(scores, yTrain);
 
   if (cycle % 10 === 0) {
-    log.textContent = `Epoch = ${cycle}, Cost = ${J}, Learning Rate = ${learningRate}`;
+    log.textContent = `Epoch = ${cycle}, Cost = ${Number(J).toFixed(8)}, Learning Rate = ${learningRate}`;
     clear(ctx);
     renderEach(ctx, params, width, height);
     render(ctx, points);

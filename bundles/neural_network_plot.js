@@ -1,5 +1,7 @@
 import synaptic from 'synaptic';
 
+let log = document.createElement('p');
+
 function curveFactory(yIntercept, width) {
   return (x) => width * x * x + yIntercept;
 }
@@ -52,6 +54,7 @@ function main(container) {
   canvas.height = Math.min(window.innerHeight * 0.3, 300);
   canvas.classname = 'nn-canvas';
   container.appendChild(canvas);
+  container.appendChild(log);
   const ctx = canvas.getContext('2d');
 
   const points = [];
@@ -78,36 +81,33 @@ function main(container) {
   let xTrain = points.map(([x, y]) => [x / canvas.width, y / canvas.height]);
   let yTrain = points.map(([x, y, color]) => [Number(color === colors.pos)]);
   let trainingSet = xTrain.map((input, i) => (Math.random() > 0.9 ? { input, output: yTrain[i] } : null)).filter(_ => _);
-  let samplePoints = points.map((point) => Math.random() > 0.999 ? point : null).filter(_ => _);
+  let samplePoints = points.map((point) => Math.random() > 0.998 ? point : null).filter(_ => _);
 
-  const net = new synaptic.Architect.Perceptron(2, 8, 8, 8, 8, 1);
+  const net = new synaptic.Architect.Perceptron(2, 8, 8, 1);
   const trainer = new synaptic.Trainer(net);
 
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   renderEach(canvas, ctx, canvas.width, canvas.height, net);
   render(ctx, samplePoints);
 
+  const settings = { rate: 0.005, iterations: 10 };
+
   function train(i, max) {
-    trainer.trainAsync(trainingSet, {
-      rate: 0.0003,
-      iterations: 100,
-    }).then((res) => {
-      console.log(`Error: ${res.error}`)
+    trainer.trainAsync(trainingSet, settings).then((res) => {
+      log.textContent = `Epoch = ${i}, Cost = ${Number(res.error).toFixed(8)}, Learning Rate = ${settings.rate}`;
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       renderEach(canvas, ctx, canvas.width, canvas.height, net);
       render(ctx, samplePoints);
 
       if (i < max) {
-        setTimeout(() => {
-          train(i + 1, max);
-        }, 10);
+        train(i + 1, max);
       }
     });
   }
 
-  train(0, 10000);
   btn.addEventListener('click', function () {
     btn.setAttribute('disabled', 'true');
+    train(0, 10000);
   });
 }
 

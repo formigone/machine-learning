@@ -61,11 +61,12 @@ var formigone = formigone || {}; formigone["linear_regression_painting"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
-/* 0 */
+/* 0 */,
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -154,7 +155,11 @@ function iToPt(i, width) {
 }
 
 /***/ }),
-/* 1 */
+/* 2 */,
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -164,11 +169,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _LinearRegressionModel = __webpack_require__(2);
+var _LinearRegressionModel = __webpack_require__(7);
 
 var _LinearRegressionModel2 = _interopRequireDefault(_LinearRegressionModel);
 
-var _mathHelper = __webpack_require__(0);
+var _mathHelper = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -334,7 +339,7 @@ function main(imgUrl, container) {
 exports.default = main;
 
 /***/ }),
-/* 2 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -344,7 +349,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _mathHelper = __webpack_require__(0);
+var _mathHelper = __webpack_require__(1);
 
 function LinearRegressionModel(numFeatures) {
   // Zeroth input will always be a constant bias unit == 1

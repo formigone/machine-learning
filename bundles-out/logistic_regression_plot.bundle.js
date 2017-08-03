@@ -61,11 +61,12 @@ var formigone = formigone || {}; formigone["logistic_regression_plot"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 8);
 /******/ })
 /************************************************************************/
 /******/ ([
-/* 0 */
+/* 0 */,
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -154,9 +155,13 @@ function iToPt(i, width) {
 }
 
 /***/ }),
-/* 1 */,
 /* 2 */,
-/* 3 */
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -166,11 +171,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _SigmoidClassifier = __webpack_require__(4);
+var _SigmoidClassifier = __webpack_require__(9);
 
 var _SigmoidClassifier2 = _interopRequireDefault(_SigmoidClassifier);
 
-var _util = __webpack_require__(5);
+var _util = __webpack_require__(10);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -206,9 +211,9 @@ function renderEach(ctx, params, width, height) {
   for (var y = 0; y < height; y++) {
     for (var x = 0; x < width; x++) {
       if (sig(sum([1, x / 100, y / 100], params)) < 0.5) {
-        ctx.fillStyle = '#b22438';
+        ctx.fillStyle = '#FFB5F7';
       } else {
-        ctx.fillStyle = '#fff9b6';
+        ctx.fillStyle = '#A5A6FF';
       }
 
       ctx.fillRect(x, y, 1, 1);
@@ -247,7 +252,7 @@ function doEpoch(xTrain, yTrain, params, learningRate, cycle, maxCycles, points,
   var J = cost(scores, yTrain);
 
   if (cycle % 10 === 0) {
-    log.textContent = 'Epoch = ' + cycle + ', Cost = ' + J + ', Learning Rate = ' + learningRate;
+    log.textContent = 'Epoch = ' + cycle + ', Cost = ' + Number(J).toFixed(8) + ', Learning Rate = ' + learningRate;
     clear(ctx);
     renderEach(ctx, params, width, height);
     render(ctx, points);
@@ -331,7 +336,7 @@ function main(container) {
 exports.default = main;
 
 /***/ }),
-/* 4 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -341,7 +346,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _mathHelper = __webpack_require__(0);
+var _mathHelper = __webpack_require__(1);
 
 function SigmoidClassifier(numFeatures) {
   // Zeroth input will always be a constant bias unit == 1
@@ -457,7 +462,7 @@ SigmoidClassifier.prototype.setParams = function (params) {
 exports.default = SigmoidClassifier;
 
 /***/ }),
-/* 5 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
