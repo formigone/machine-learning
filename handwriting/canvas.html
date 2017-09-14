@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <title>MNIST Canvas</title>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #eee;
+    }
+
+    .card {
+      width: 500px;
+      box-shadow: 0 1px 1px #aaa;
+      background: #fff;
+    }
+
+    .card.card-air {
+      margin: 5em auto;
+    }
+
+    .card-center {
+      margin: 0 auto;
+    }
+
+    .card .br {
+      border-bottom: 1px solid #ddd;
+    }
+
+    .card .wide {
+      width: 100%;
+    }
+
+    .action-bar {
+      display: flex;
+    }
+
+    .action-btn {
+      flex-grow: 1;
+      padding: 1em 0;
+      margin: 0;
+      font-size: 2em;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #555;
+    }
+
+    .action-btn:disabled {
+      color: #ddd;
+    }
+
+    .action-btn:enabled {
+      cursor: pointer;
+    }
+
+    .action-btn:hover:enabled {
+      background: #fafafa;
+    }
+
+    .action-btn:focus {
+      background: #fafafa;
+      box-shadow: 0 0 1px #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card card-center card-air" id="app"></div>
+
+<script>
+  function dom(name, props, children) {
+    var element = document.createElement(name);
+
+    Object.keys(props || {}).forEach(prop => {
+      if (prop === 'events') {
+        Object.keys(props[prop]).forEach(event => {
+          element.addEventListener(event, props[prop][event]);
+        });
+      } else {
+        element.setAttribute(prop, props[prop]);
+      }
+    });
+
+    if (children instanceof Element) {
+      element.appendChild(children);
+    } else if (children instanceof Array) {
+      children.forEach(child => {
+        if (child instanceof Element) {
+          element.appendChild(child);
+        }
+      })
+    } else if (typeof children === 'string' || typeof children === 'number') {
+      element.textContent = children;
+    }
+
+    return element;
+  }
+
+  function Canvas(width, height, props) {
+    this.el = dom('canvas', { ...props, width, height })
+    this.el.width = width;
+    this.el.height = height;
+    this.ctx = this.el.getContext('2d');
+  }
+
+  function handleBtnClick(event) {
+    var target = event.target;
+    var intent = target instanceof Element && target.getAttribute('data-intent');
+    console.log('Click', { event, intent, target: event.target });
+  }
+
+  (function main() {
+    var canvas = new Canvas(28 * 3, 28 * 3, { class: 'br wide' });
+    var buttons = dom('div', { class: 'action-bar' }, [
+      dom('button', { class: 'action-btn fa fa-file-image-o', 'data-intent': 'clear', events: { click: handleBtnClick } }),
+      dom('button', { disabled: 1, class: 'action-btn fa fa-thumbs-o-up', 'data-intent': 'right', events: { click: handleBtnClick } }),
+      dom('button', { disabled: 1, class: 'action-btn fa fa-thumbs-o-down', 'data-intent': 'right', events: { click: handleBtnClick } }),
+    ]);
+    var container = document.getElementById('app');
+    container.appendChild(canvas.el);
+    container.appendChild(buttons);
+  }());
+</script>
+</body>
+</html>
