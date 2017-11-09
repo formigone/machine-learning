@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <title>Player.html</title>
+  <style>
+    img {
+      width: 100%;
+      display: block;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+<p>
+  <label>YouTube ID: <input type="text" id="id" value="eBbEDRsCmv4"/></label>
+  <button id="btnLoad">Load</button>
+  <button id="btnCapture">Capture</button>
+</p>
+<video id="video" controls></video>
+<script>
+  var video = document.getElementById('video');
+  var idInput = document.getElementById('id');
+  var btnCapture = document.getElementById('btnCapture');
+  var btnLoad = document.getElementById('btnLoad');
+  btnLoad.addEventListener('click', () => {
+    console.log('load')
+    var id = idInput.value;
+    video.src = `/youtube-proxy.php?id=${id}`;
+  });
+
+  btnCapture.addEventListener('click', () => {
+    console.log('capture')
+    var canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var img = document.createElement('img');
+    img.src = canvas.toDataURL();
+    document.body.appendChild(img);
+  });
+
+  document.addEventListener('keypress', (e) => {
+    console.log(e);
+  })
+
+  video.addEventListener('click', (e) => {
+    console.log(e);
+  })
+</script>
+</body>
+</html>
