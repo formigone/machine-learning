@@ -37,7 +37,7 @@ canvas {
 
 @media (min-width: 1000px) {
     .card_inline {
-        width: 12%;
+        width: 8.5%;
     }
 }
 
@@ -53,6 +53,7 @@ canvas {
     padding: 5%;
     background: #fff;
     display: flex;
+    position: relative;
 }
 
 .card-toolbar_col {
@@ -99,10 +100,21 @@ canvas {
     justify-content: space-between;
 }
 
+.card-toolbar-settings {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #eaeaea;
+    height: 100%;
+    box-shadow: 0 -1px 1px #aaa;
+}
+
 .container {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
+    margin: 0 0 64px;
 }
 
 .snackbar {
